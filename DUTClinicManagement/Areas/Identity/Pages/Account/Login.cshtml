@@ -1,0 +1,93 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "~/Views/Shared/_NoNavLayout.cshtml";
+}
+
+<head>
+    <style>
+        .btn-login {
+            background-color: #48AAAD;
+            color: white;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 0.7rem;
+            transition: background-color 0.3s ease;
+        }
+
+            .btn-login:hover {
+                background-color: #369a9a;
+                box-shadow: 0 4px 15px rgba(72, 170, 173, 0.4);
+            }
+    </style>
+</head>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="login-card shadow">
+                <h1 class="app-name text-center"><span style="color: #022D36;">Medi</span><span style="color: #48AAAD;">Connect</span></h1>
+                <h3 class="login-header">Login</h3>
+                <form id="account" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <div class="mb-4">
+                        <label asp-for="Input.EmailOrPhone" class="form-label fw-semibold"></label>
+                        <input asp-for="Input.EmailOrPhone" class="form-control" placeholder="example@gmail.com" />
+                        <span asp-validation-for="Input.EmailOrPhone" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4 position-relative">
+                        <label asp-for="Input.Password" class="form-label fw-semibold"></label>
+                        <input asp-for="Input.Password" class="form-control pe-5" id="passwordInput" />
+
+                        <i class="bi bi-eye-slash position-absolute toggle-icon" id="toggleIcon" onclick="togglePassword()"></i>
+
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    @* <div class="checkbox mb-4">
+                        <label asp-for="Input.RememberMe" class="form-label">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            @Html.DisplayNameFor(m => m.Input.RememberMe)
+                        </label>
+                    </div> *@
+
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-login">
+                            Login
+                        </button>
+                    </div>
+
+                    <div class="text-end small">
+                        <p>
+                            <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
+                        </p>
+                    </div>
+                    <div class="account-link-wrapper">
+                        <p class="fw-semibold">Don't have an account?</p>
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create a new account</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function togglePassword() {
+        const input = document.getElementById("passwordInput");
+        const icon = document.getElementById("toggleIcon");
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        }
+    }
+</script>

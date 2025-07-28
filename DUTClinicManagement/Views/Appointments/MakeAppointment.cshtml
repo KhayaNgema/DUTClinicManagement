@@ -1,0 +1,103 @@
+﻿@model DUTClinicManagement.ViewModels.MakeAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Appointment";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+}
+
+<a asp-controller="Appointments" asp-action="MyAppointments" class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4">
+    <i class="bi bi-chevron-left me-2 fs-5"></i><span class="fw-semibold">Back</span>
+</a>
+@if (TempData["Message"] != null)
+{
+    <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+        @Html.Raw(TempData["Message"])
+        <span class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </span>
+    </div>
+}
+<div class="container my-3 px-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow rounded-4 p-4">
+                <h3 class="text-center mb-4" style="color: #022D36;">Book an Appointment</h3>
+                <form asp-action="MakeAppointment" method="post" id="appointmentForm">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <select asp-for="MedicalCondition" id="MedicalCondition" class="form-select rounded-3"
+                            asp-items="Html.GetEnumSelectList<CommonMedicalCondition>()">
+                        <option value="">-- Select Condition --</option>
+                    </select>
+                    <div class="mb-3">
+                        <label asp-for="BookForDate" class="form-label fw-semibold"></label>
+                        <input asp-for="BookForDate" class="form-control rounded-3" type="date" id="BookForDate" />
+                        <span asp-validation-for="BookForDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="BookForTimeSlot" class="form-label fw-semibold"></label>
+                        <select asp-for="BookForTimeSlot" id="BookForTimeSlot" class="form-select rounded-3" asp-items="Model.AvailableTimeSlots">
+                            <option value="">-- Select Time Slot --</option>
+                        </select>
+                        <span asp-validation-for="BookForTimeSlot" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AdditionalNotes" class="form-label fw-semibold"></label>
+                        <textarea asp-for="AdditionalNotes" class="form-control rounded-3" style="min-height: 100px;"></textarea>
+                        <span asp-validation-for="AdditionalNotes" class="text-danger small"></span>
+                    </div>
+
+                    <input asp-for="PatientId" type="hidden" />
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn" style="background-color: #48AAAD; color: white; border-radius: 25px; font-weight: 600;">
+                            Confirm Appointment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function fetchAvailableSlots() {
+        var selectedDate = document.getElementById('BookForDate').value;
+        var selectedCondition = document.getElementById('MedicalCondition').value;
+        var timeSlotDropdown = document.getElementById('BookForTimeSlot');
+        timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+
+        if (!selectedDate || !selectedCondition) {
+            return;  
+        }
+
+        fetch(`/Appointments/GetAvailableTimeSlots?date=${selectedDate}&condition=${selectedCondition}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(function (slot) {
+                    var option = document.createElement('option');
+                    option.value = slot.value;
+                    option.text = slot.text;
+                    timeSlotDropdown.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching time slots:', error);
+            });
+    }
+    document.getElementById('BookForDate').addEventListener('change', fetchAvailableSlots);
+    document.getElementById('MedicalCondition').addEventListener('change', fetchAvailableSlots);
+    window.addEventListener('DOMContentLoaded', fetchAvailableSlots);
+
+    window.addEventListener('DOMContentLoaded', (event) => {
+        fetchAvailableSlots();
+    });
+
+    setTimeout(function () {
+        document.getElementById("tempDataMessage").style.display = "none";
+    }, 7000);
+</script>

@@ -1,0 +1,903 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DUTClinicManagement.Data
+@inject SignInManager<UserBaseModel> SignInManager
+@inject UserManager<UserBaseModel> UserManager
+@inject DUTClinicManagementDbContext _context
+@using DUTClinicManagement.Models;
+@using DUTClinicManagement.Interfaces;
+@inject IEncryptionService EncryptionService
+@inject IWebHostEnvironment WebHostEnvironment
+@using Microsoft.EntityFrameworkCore
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+
+    var doctor = await _context.Doctors
+        .Where(d => d.Id == user.Id)
+        .FirstOrDefaultAsync();
+
+    var firstName = user.FirstName;
+    var lastName = user.LastName;
+
+    var userRole = _context.UserRoles
+        .Where(ur => ur.UserId == user.Id)
+        .Join(_context.Roles,
+              ur => ur.RoleId,
+              r => r.Id,
+              (ur, r) => r.Name)
+        .FirstOrDefault();
+
+
+    var profilePhotoUrl = "";
+
+    if (User.Identity.IsAuthenticated && !string.IsNullOrEmpty(user.ProfilePicture))
+    {
+        profilePhotoUrl = $"~/{user.ProfilePicture}";
+    }
+
+    var encryptedUserId = EncryptionService.Encrypt(user.Id.ToString());
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>@ViewData["Title"] - MediConnect</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/HospitalManagement.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="icon" href="~/favicon.ico" type="image/x-icon" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_TRACKING_ID"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'YOUR_TRACKING_ID');
+    </script>
+
+</head>
+
+<style>
+    .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    display: none;
+    z-index: 9998;
+    }
+
+    #page-content-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    }
+
+    .main-content {
+    width: 100%;
+    }
+
+    .container-fluid {
+    padding-left: 10px;
+    padding-right: 10px;
+    }
+
+</style>
+
+<body>
+    <header>
+        <div id="overlay" class="overlay"></div>
+
+        <nav class="navbar navbar-expand-sm" id="loginNav" style="color: white; background-color: #264653;">
+            <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center">
+
+
+                <div class="d-flex flex-column flex-sm-row flex-grow-1">
+                    <div style="margin-bottom: 6px; margin-right: 10px;">
+                        <span><i class="fa fa-phone me-2"></i>+1 (234) 567-890</span>
+                    </div>
+                    <div>
+                        <span><i class="fa fa-envelope me-2"></i>info@mediconnect.com</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center" style="margin-left: 30px;">
+                    <a href="/messages" class="position-relative" style="color: white; font-size: 28px;">
+                        <i class="fa fa-envelope"></i>
+                        <span class="position-absolute bottom-0 start-100 translate-middle badge rounded-pill bg-danger"
+                        style="font-size: 15px; padding: 2px 5px;">
+                            5
+                            <span class="visually-hidden">unread messages</span>
+                        </span>
+                    </a>
+                </div>
+
+            </div>
+        </nav>
+
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm" id="homeTabsNav-lay" style="background-color:#FAFAFA;">
+            <div class="container-fluid">
+                <div class="container-fluid d-flex align-items-center justify-content-between">
+
+                    <div class="d-flex align-items-center">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <a href="#menu-toggle" id="menu-toggle" style="font-size: 26px; color: #022D36; text-decoration: none; margin-right: 10px;">
+                                <i class="fa fa-chevron-right chevron-rotate"></i>
+                            </a>                            
+                            <a class="navbar-brand" href="/">
+                                <span style="color: #022D36;font-size:36px; font-weight:bold;">Medi</span><span style="color: #48AAAD; font-size:36px; font-weight:bold;">Connect</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="navbar-brand" href="/">
+                                <span style="color: #022D36;font-size:36px; font-weight:bold;">Medi</span><span style="color: #48AAAD; font-size:36px; font-weight:bold;">Connect</span>
+                            </a>
+
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+
+        @if (User.Identity.IsAuthenticated)
+        {
+
+            @if (User.IsInRole("System Administrator"))
+            {
+                <div id="wrapper">
+                    <div id="sidebar-wrapper" style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent;">
+                        <div style="padding: 30px; margin-top:0; background-color: #022D36; color: white; position: sticky; top: 0; z-index: 1; text-align: center; object-fit:cover;">
+                            <img src="@Url.Content("~/" + user.ProfilePicture)" alt="Profile Photo" style="width: 70px; height: 70px; border-radius: 50%; margin: 0 auto; object-fit:cover">
+
+                            <div style="margin-top: 10px;"> 
+
+                                <div style="font-size: 16px; font-weight: bold;">@firstName @lastName</div>
+
+                                <div style="font-size: 14px; color: #ccc;">@userRole</div>
+                            </div>
+                            <button style="background-color: transparent; border: 1px solid #48AAAD; color: #48AAAD; padding: 4px 9px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                                <a style="color:#48AAAD" asp-controller="Users" asp-action="UserProfile" asp-route-userId="@encryptedUserId">Profile <i class="fa fa-arrow-right"></i></a>
+                            </button>
+                        </div>
+                        <ul class="sidebar-nav" style="list-style: none; padding: 0;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center; cursor:pointer;">
+                                <i class="fa fa-home fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Home" asp-action="Index" class="nav-link text-light" style="font-weight: bold;">Home</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; ">
+
+                            <li style="margin-left: 30px; cursor:pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" data-toggle="collapse" data-target="#inventorySubmenu" aria-expanded="false" aria-controls="inventorySubmenu" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-pills fa-lg" style="color: white; margin-right: 10px;"></i>
+                                        <span class="nav-link text-light" style="font-weight: bold;">Inventory</span>
+                                    </div>
+                                    <i class="fa fa-chevron-down caret-rotate collapsed" style="color: white; margin-right: 15px;"></i>
+                                </div>
+                                <ul class="collapse list-unstyled collapsible-menu" id="inventorySubmenu" style="margin-left: 35px;">
+                                    <li style="margin-top: 10px;"><a asp-controller="Medications" asp-action="Medications" class="nav-link text-light">Medication</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Menus" asp-action="MenuItems" class="nav-link text-light">Meals</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Categories" asp-action="Categories" class="nav-link text-light">Medication categories</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Categories" asp-action="Categories" class="nav-link text-light">Meals categories</a></li>
+                                </ul>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; cursor:pointer;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                            <i class="fa fa-bed fa-lg" style="color: white; margin-right: 10px;"></i>
+                            <a asp-controller="Rooms" asp-action="Rooms" class="nav-link text-light" style="font-weight: bold;">Room Management</a>
+                            </li>
+
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-left: 30px; cursor:pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" data-toggle="collapse" data-target="#billingSubmenu" aria-expanded="false" aria-controls="billingSubmenu" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-file-invoice-dollar fa-lg" style="color: white; margin-right: 10px;"></i>
+                                        <span class="nav-link text-light" style="font-weight: bold;">Billings & Finance</span>
+                                    </div>
+                                    <i class="fa fa-chevron-down caret-rotate collapsed" style="color: white; margin-right: 15px;"></i>
+                                </div>
+                                <ul class="collapse list-unstyled collapsible-menu" id="billingSubmenu" style="margin-left: 35px;">
+                                    <li style="margin-top: 10px;"><a asp-controller="Billings" asp-action="OutboundInvoices" class="nav-link text-light">Outbound Invoices</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Billings" asp-action="Transactions" class="nav-link text-light">Transactions</a></li>
+                                </ul>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; cursor:pointer;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-chart-line fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Reports" asp-action="Reports" class="nav-link text-light" style="font-weight: bold;">Reports & Analytics</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-left: 30px; cursor:pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" data-toggle="collapse" data-target="#auditsSubmenu" aria-expanded="false" aria-controls="auditsSubmenu" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-history fa-lg" style="color: white; margin-right: 10px;"></i>
+                                        <span class="nav-link text-light" style="font-weight: bold;">Activity logs & Audits</span>
+                                    </div>
+                                    <i class="fa fa-chevron-down caret-rotate collapsed" style="color: white; margin-right: 15px;"></i>
+                                </div>
+                                <ul class="collapse list-unstyled collapsible-menu" id="auditsSubmenu" style="margin-left: 35px;">
+                                    <li style="margin-top: 10px;"><a asp-controller="ActivityLogs" asp-action="ActivityLogs" class="nav-link text-light">Staff</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="ActivityLogs" asp-action="PatientsActivityLogs" class="nav-link text-light">Patients</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="ActivityLogs" asp-action="MyActivityLogs" class="nav-link text-light">Myself</a></li>
+                                </ul>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-top: 20px; margin-left: 30px; display: flex; align-items: center; list-style-type: none;">
+                                <i class="fa fa-shield-alt fa-lg" style="color: white; margin-right: 5px;"></i>
+                                <a asp-controller="Users" asp-action="Account" class="nav-link text-light" style="font-weight: bold;">Account and security</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li class="nav-login-item" style="margin-left: 30px; display: flex; align-items: center; cursor:pointer;">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <i class="fa fa-sign-out-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                    <button type="submit" class="nav-login-link" style="color: white; background-color: transparent; border: none; cursor: pointer; font-weight: bold;">Logout</button>
+                                </form>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("Doctor"))
+            {
+                <div id="wrapper">
+                    <div id="sidebar-wrapper" style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent;">
+                        <div style="padding: 30px; margin-top:0; background-color: #022D36; color: white; position: sticky; top: 0; z-index: 1; text-align: center; object-fit:cover;">
+                            <img src="@Url.Content("~/" + user.ProfilePicture)" alt="Profile Photo" style="width: 70px; height: 70px; border-radius: 50%; margin: 0 auto; object-fit:cover">
+
+                            <div style="margin-top: 10px;">
+
+                                <div style="font-size: 16px; font-weight: bold;">@firstName @lastName</div>
+
+                                <div style="font-size: 14px; color: #ccc;">
+                                    @($"{doctor.Specialization} ({userRole})")
+                                </div>
+                            </div>
+                            <button style="background-color: transparent; border: 1px solid #48AAAD; color: #48AAAD; padding: 4px 9px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                                <a style="color:#48AAAD" asp-controller="Users" asp-action="UserProfile" asp-route-userId="@encryptedUserId">Profile <i class="fa fa-arrow-right"></i></a>
+                            </button>
+                        </div>
+                        <ul class="sidebar-nav" style="list-style: none; padding: 0;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center; cursor:pointer;">
+                                <i class="fa fa-home fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Home" asp-action="Index" class="nav-link text-light" style="font-weight: bold;">Home</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; cursor:pointer;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-chart-line fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Reports" asp-action="Reports" class="nav-link text-light" style="font-weight: bold;">Reports & Analytics</a>
+                            </li>
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-chart-line fa-history fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="ActivityLogs" asp-action="MyActivityLogs" class="nav-link text-light" style="font-weight: bold;">Activity Logs</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-top: 20px; margin-left: 30px; display: flex; align-items: center; list-style-type: none;">
+                                <i class="fa fa-shield-alt fa-lg" style="color: white; margin-right: 5px;"></i>
+                                <a asp-controller="Users" asp-action="Account" class="nav-link text-light" style="font-weight: bold;">Account and security</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li class="nav-login-item" style="margin-left: 30px; display: flex; align-items: center; cursor:pointer;">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <i class="fa fa-sign-out-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                    <button type="submit" class="nav-login-link" style="color: white; background-color: transparent; border: none; cursor: pointer; font-weight: bold;">Logout</button>
+                                </form>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("Pharmacist"))
+            {
+                <div id="wrapper">
+                    <div id="sidebar-wrapper" style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent;">
+                        <div style="padding: 30px; margin-top:0; background-color: #022D36; color: white; position: sticky; top: 0; z-index: 1; text-align: center; object-fit:cover;">
+                            <img src="@Url.Content("~/" + user.ProfilePicture)" alt="Profile Photo" style="width: 70px; height: 70px; border-radius: 50%; margin: 0 auto; object-fit:cover">
+
+                            <div style="margin-top: 10px;">
+
+                                <div style="font-size: 16px; font-weight: bold;">@firstName @lastName</div>
+
+                                <div style="font-size: 14px; color: #ccc;">@userRole</div>
+                            </div>
+                            <button style="background-color: transparent; border: 1px solid #48AAAD; color: #48AAAD; padding: 4px 9px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                                <a style="color:#48AAAD" asp-controller="Users" asp-action="UserProfile" asp-route-userId="@encryptedUserId">Profile <i class="fa fa-arrow-right"></i></a>
+                            </button>
+                        </div>
+                        <ul class="sidebar-nav" style="list-style: none; padding: 0;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center; cursor:pointer;">
+                                <i class="fa fa-home fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Home" asp-action="Index" class="nav-link text-light" style="font-weight: bold;">Home</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; ">
+
+                            <li style="margin-left: 30px; cursor:pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" data-toggle="collapse" data-target="#inventorySubmenu" aria-expanded="false" aria-controls="inventorySubmenu" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-pills fa-lg" style="color: white; margin-right: 10px;"></i>
+                                        <span class="nav-link text-light" style="font-weight: bold;">Inventory</span>
+                                    </div>
+                                    <i class="fa fa-chevron-down caret-rotate collapsed" style="color: white; margin-right: 15px;"></i>
+                                </div>
+                                <ul class="collapse list-unstyled collapsible-menu" id="inventorySubmenu" style="margin-left: 35px;">
+                                    <li style="margin-top: 10px;"><a asp-controller="Medications" asp-action="Medications" class="nav-link text-light">Medication</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Categories" asp-action="MedicationCategories" class="nav-link text-light">Medication categories</a></li>
+                                </ul>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; cursor:pointer;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-chart-line fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Reports" asp-action="Reports" class="nav-link text-light" style="font-weight: bold;">Reports & Analytics</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-chart-line fa-history fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="ActivityLogs" asp-action="MyActivityLogs" class="nav-link text-light" style="font-weight: bold;">Activity Logs</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-top: 20px; margin-left: 30px; display: flex; align-items: center; list-style-type: none;">
+                                <i class="fa fa-shield-alt fa-lg" style="color: white; margin-right: 5px;"></i>
+                                <a asp-controller="Users" asp-action="Account" class="nav-link text-light" style="font-weight: bold;">Account and security</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li class="nav-login-item" style="margin-left: 30px; display: flex; align-items: center; cursor:pointer;">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <i class="fa fa-sign-out-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                    <button type="submit" class="nav-login-link" style="color: white; background-color: transparent; border: none; cursor: pointer; font-weight: bold;">Logout</button>
+                                </form>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                </div>
+            }
+            else  if (User.IsInRole("Kitchen Staff"))
+            {
+                <div id="wrapper">
+                    <div id="sidebar-wrapper" style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent;">
+                        <div style="padding: 30px; margin-top:0; background-color: #022D36; color: white; position: sticky; top: 0; z-index: 1; text-align: center; object-fit:cover;">
+                            <img src="@Url.Content("~/" + user.ProfilePicture)" alt="Profile Photo" style="width: 70px; height: 70px; border-radius: 50%; margin: 0 auto; object-fit:cover">
+
+                            <div style="margin-top: 10px;">
+
+                                <div style="font-size: 16px; font-weight: bold;">@firstName @lastName</div>
+
+                                <div style="font-size: 14px; color: #ccc;">@userRole</div>
+                            </div>
+                            <button style="background-color: transparent; border: 1px solid #48AAAD; color: #48AAAD; padding: 4px 9px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                                <a style="color:#48AAAD" asp-controller="Users" asp-action="UserProfile" asp-route-userId="@encryptedUserId">Profile <i class="fa fa-arrow-right"></i></a>
+                            </button>
+                        </div>
+                        <ul class="sidebar-nav" style="list-style: none; padding: 0;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center; cursor:pointer;">
+                                <i class="fa fa-home fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Home" asp-action="Index" class="nav-link text-light" style="font-weight: bold;">Home</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; ">
+
+                            <li style="margin-left: 30px; cursor:pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" data-toggle="collapse" data-target="#inventorySubmenu" aria-expanded="false" aria-controls="inventorySubmenu" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-utensils fa-lg" style="color: white; margin-right: 10px;"></i>
+                                        <span class="nav-link text-light" style="font-weight: bold;">Inventory</span>
+                                    </div>
+                                    <i class="fa fa-chevron-down caret-rotate collapsed" style="color: white; margin-right: 15px;"></i>
+                                </div>
+                                <ul class="collapse list-unstyled collapsible-menu" id="inventorySubmenu" style="margin-left: 35px;">
+                                    <li style="margin-top: 10px;"><a asp-controller="Menus" asp-action="MenuItems" class="nav-link text-light">Meals</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Categories" asp-action="Categories" class="nav-link text-light">Meals categories</a></li>
+                                </ul>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center; cursor:pointer;">
+                                <i class="fa fa-history fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Orders" asp-action="Orders" class="nav-link text-light" style="font-weight: bold;">Previous Orders</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px; cursor:pointer;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-chart-line fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Reports" asp-action="Reports" class="nav-link text-light" style="font-weight: bold;">Reports & Analytics</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-left: 30px; cursor:pointer;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" data-toggle="collapse" data-target="#billingSubmenu" aria-expanded="false" aria-controls="billingSubmenu" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-file-invoice-dollar fa-lg" style="color: white; margin-right: 10px;"></i>
+                                        <span class="nav-link text-light" style="font-weight: bold;">Billings & Finance</span>
+                                    </div>
+                                    <i class="fa fa-chevron-down caret-rotate collapsed" style="color: white; margin-right: 15px;"></i>
+                                </div>
+                                <ul class="collapse list-unstyled collapsible-menu" id="billingSubmenu" style="margin-left: 35px;">
+                                    <li style="margin-top: 10px;"><a asp-controller="Billings" asp-action="OutboundInvoices" class="nav-link text-light">Outbound Invoices</a></li>
+                                    <li style="margin-top: 10px;"><a asp-controller="Billings" asp-action="Transactions" class="nav-link text-light">Transactions</a></li>
+                                </ul>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-top: 20px; margin-left: 30px; display: flex; align-items: center; list-style-type: none;">
+                                <i class="fa fa-shield-alt fa-lg" style="color: white; margin-right: 5px;"></i>
+                                <a asp-controller="Users" asp-action="Account" class="nav-link text-light" style="font-weight: bold;">Account and security</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li class="nav-login-item" style="margin-left: 30px; display: flex; align-items: center; cursor:pointer;">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <i class="fa fa-sign-out-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                    <button type="submit" class="nav-login-link" style="color: white; background-color: transparent; border: none; cursor: pointer; font-weight: bold;">Logout</button>
+                                </form>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("Receptionist"))
+            {
+                <div id="wrapper">
+                    <div id="sidebar-wrapper" style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent;">
+                        <div style="padding: 30px; margin-top:0; background-color: #022D36; color: white; position: sticky; top: 0; z-index: 1; text-align: center; object-fit:cover;">
+                            <img src="@Url.Content("~/" + user.ProfilePicture)" alt="Profile Photo" style="width: 70px; height: 70px; border-radius: 50%; margin: 0 auto; object-fit:cover">
+
+                            <div style="margin-top: 10px;">
+
+                                <div style="font-size: 16px; font-weight: bold;">@firstName @lastName</div>
+                                <div style="font-size: 14px; color: #ccc;">@userRole</div>
+                            </div>
+                            <button style="background-color: transparent; border: 1px solid #48AAAD; color: #48AAAD; padding: 4px 9px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                                <a style="color:#48AAAD" asp-controller="Users" asp-action="UserProfile" asp-route-userId="@encryptedUserId">Profile <i class="fa fa-arrow-right"></i></a>
+                            </button>
+                        </div>
+                        <ul class="sidebar-nav" style="list-style: none; padding: 0;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-home fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Home" asp-action="Index" class="nav-link text-light" style="font-weight: bold;">Home</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-top: 20px; margin-left: 30px; display: flex; align-items: center; list-style-type: none;">
+                                <i class="fa fa-shield-alt fa-lg" style="color: white; margin-right: 5px;"></i>
+                                <a asp-controller="Users" asp-action="Account" class="nav-link text-light" style="font-weight: bold;">Account and security</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li class="nav-login-item" style="margin-left: 30px; display: flex; align-items: center;">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <i class="fa fa-sign-out-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                    <button type="submit" class="nav-login-link" style="color: white; background-color: transparent; border: none; cursor: pointer; font-weight: bold;">Logout</button>
+                                </form>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div id="wrapper">
+                    <div id="sidebar-wrapper" style="overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent;">
+                        <div style="padding: 30px; margin-top:0; background-color: #022D36; color: white; position: sticky; top: 0; z-index: 1; text-align: center; object-fit:cover;">
+                            <img src="@Url.Content("~/" + user.ProfilePicture)" alt="Profile Photo" style="width: 70px; height: 70px; border-radius: 50%; margin: 0 auto; object-fit:cover">
+
+                            <div style="margin-top: 10px;">
+
+                                <div style="font-size: 16px; font-weight: bold;">@firstName @lastName</div>
+                                <div style="font-size: 14px; color: #ccc;">Patient</div>
+                            </div>
+                            <button style="background-color: transparent; border: 1px solid #48AAAD; color: #48AAAD; padding: 4px 9px; border-radius: 5px; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                                <a style="color:#48AAAD" asp-controller="Users" asp-action="UserProfile" asp-route-userId="@encryptedUserId">Profile <i class="fa fa-arrow-right"></i></a>
+                            </button>
+                        </div>
+                        <ul class="sidebar-nav" style="list-style: none; padding: 0;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-home fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Home" asp-action="Index" class="nav-link text-light" style="font-weight: bold;">Home</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-user-injured fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Admissions" asp-action="MyAdmissions" class="nav-link text-light" style="font-weight: bold;">Admissions</a>
+                            </li>
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-shopping-cart fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Orders" asp-action="MyOrders" class="nav-link text-light" style="font-weight: bold;">Orders</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-pills fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Medications" asp-action="CollectMedication" class="nav-link text-light" style="font-weight: bold;">Medications</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-file-invoice-dollar fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Billings" asp-action="MyBill" class="nav-link text-light" style="font-weight: bold;">My Service Bill</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin: 20px 0 0 30px; display: flex; align-items: center;">
+                                <i class="fa fa-exchange-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                <a asp-controller="Billings" asp-action="Transactions" class="nav-link text-light" style="font-weight: bold;">Transactions</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li style="margin-top: 20px; margin-left: 30px; display: flex; align-items: center; list-style-type: none;">
+                                <i class="fa fa-shield-alt fa-lg" style="color: white; margin-right: 5px;"></i>
+                                <a asp-controller="Users" asp-action="Account" class="nav-link text-light" style="font-weight: bold;">Account and security</a>
+                            </li>
+
+                            <hr style="background-color: white; opacity: 0.2; margin: 15px 20px;">
+
+                            <li class="nav-login-item" style="margin-left: 30px; display: flex; align-items: center;">
+                                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                    <i class="fa fa-sign-out-alt fa-lg" style="color: white; margin-right: 10px;"></i>
+                                    <button type="submit" class="nav-login-link" style="color: white; background-color: transparent; border: none; cursor: pointer; font-weight: bold;">Logout</button>
+                                </form>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+                }
+        }
+
+    </header>
+    <div id="loading-overlay">
+        <div class="loading-container">
+            <i class="fas fa-heartbeat medical-icon"></i>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    
+    <div id="page-content-wrapper" class="main-content">
+        <div class="container-fluid" style="padding-right:10px; padding-left:10px;">
+            <div class="col-md-12">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    
+
+@*     <a asp-controller="Reports" asp-action="TestFeedback" class="floating-button">
+        <span class="rotate"><i class="fa fa-comment"></i> Share Feedback</span>
+    </a> *@
+    @* <div class="cookie-banner" style="display: none;"> *@
+    @*     <div class="cookie-content"> *@
+    @*         <span class="cookie-message">We use cookies to improve your experience on our website.<a class="cookie-link" href="/Home/PrivacyPolicy" id="manage-cookies">Learn more</a>/ <a class="cookie-link" href="/CookiePreferences/Index" id="manage-cookies">Manage Cookies</a></span> *@
+    @*         <button class="cookie-button btn-sm" id="accept-cookies">Got it!</button> *@
+    @*         <button class="cookie-button btn-sm" id="reject-cookies">Reject</button> *@
+    @*     </div> *@
+    @* </div> *@
+    <footer class="py-4 pages-footer" style="background-color: #022D36; color: white; padding-bottom: 0;margin-top:40px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="w-100 mt-4 mb-3">
+                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
+                            About Us
+                        </h5>
+                    </div>
+                    <p>
+                        Learn more about our mission, values, and team. Visit our
+                        <a href="@Url.Action("AboutUs", "Home")" class="text-white">About Us</a> page for more details.
+                    </p>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="w-100 mt-4 mb-3">
+                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
+                            Quick Links
+                        </h5>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><a asp-controller="Home" asp-action="PrivacyPolicy" class="text-white">Privacy Policy</a></li>
+                        <li><a asp-controller="Home" asp-action="TermsAndConditions" class="text-white">Terms & Conditions</a></li>
+                        <li><a asp-controller="Home" asp-action="ContactUs" class="text-white">Contact Us</a></li>
+                        <li><a href="https://www.facebook.com/groups/1059539181218342/" target="_blank" class="text-white">Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <div class="w-100 mt-4 mb-3">
+                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
+                            Contact Us
+                        </h5>
+                    </div>
+                    <p>Have questions? Get in touch with us via email or phone.</p>
+                    <p><i class="fa fa-envelope"></i> <a href="mailto:info@mediconnect.org" class="text-white">info@mediconnect.org</a></p>
+                    <p><i class="fa fa-phone"></i> +27732871256</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="w-100 mt-4 mb-3">
+                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
+                            Join Us
+                        </h5>
+                    </div>
+                    <p>
+                        Do you want to become one of our valued patients? <br />
+                        <a asp-area="Identity" asp-page="/Account/Register" class="text-white font-weight-bold">
+                            Click here to join MediConnect!
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+            <hr style="border-color: white; margin: 20px 0;">
+            <div class="text-center mt-3">
+                <p>&copy; @DateTime.Now.Year MediConnect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    </body>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js"></script>
+<script>
+
+    // $(document).ready(function () {
+    //     if (!getCookie('cookieConsent')) {
+    //         $('.cookie-banner').show();
+    //         $('.overlay').show();
+    //         $('body').addClass('disable-interactions');
+    //     }
+
+    //     $('#accept-cookies').click(function () {
+    //         saveCookiePreferences(true);
+    //     });
+
+    //     $('#reject-cookies').click(function () {
+    //         saveCookiePreferences(false);
+    //     });
+
+    //     function saveCookiePreferences(isAccepted) {
+    //         document.cookie = "cookieConsent=" + isAccepted + "; path=/; max-age=" + (60 * 60 * 24 * 365) + ";";
+    //         localStorage.setItem('cookieConsent', isAccepted ? 'true' : 'false');
+
+    //         $.ajax({
+    //             url: '/CookiePreferences/SavePreferences',
+    //             type: 'POST',
+    //             contentType: 'application/json',
+    //             data: JSON.stringify({
+    //                 PerformanceCookies: isAccepted,
+    //                 FunctionalityCookies: isAccepted,
+    //                 TargetingCookies: isAccepted
+    //             }),
+    //             success: function (response) {
+    //                 if (response.success) {
+    //                     $('.cookie-banner').hide();
+    //                     $('.overlay').hide();
+    //                     $('body').removeClass('disable-interactions');
+    //                 } else {
+    //                     console.error('Error saving preferences');
+    //                 }
+    //             },
+    //             error: function (xhr, status, error) {
+    //                 console.error('Error:', error);
+    //             }
+    //         });
+    //     }
+
+    //     function getCookie(name) {
+    //         const value = `; ${document.cookie}`;
+    //         const parts = value.split(`; ${name}=`);
+    //         if (parts.length === 2) return parts.pop().split(';').shift();
+    //     }
+    // });
+
+    $(document).ready(function () {
+
+        $(document).on('click', '.action-button', function () {
+            var id = $(this).data('id');
+            var $actionTab = $('#actionTab-' + id);
+            $('.action-tab').not($actionTab).hide();
+            $actionTab.toggle();
+        });
+
+        $(document).on('click', function (event) {
+            var $target = $(event.target);
+            if (!$target.closest('.action-tab').length && !$target.closest('.action-button').length) {
+                $('.action-tab').hide();
+            }
+        });
+    });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        function adjustBodyPadding() {
+            var loginNav = document.getElementById('loginNav');
+            var homeTabsNav = document.getElementById('homeTabsNav-lay');
+            var scrollTextNav = document.getElementById('scrollTextNav-lay');
+            var divisionNav = document.getElementById('divisionNav');
+
+            var loginNavHeight = loginNav ? loginNav.offsetHeight : 0;
+            var homeTabsNavHeight = homeTabsNav ? homeTabsNav.offsetHeight : 0;
+            var scrollTextNavHeight = scrollTextNav ? scrollTextNav.offsetHeight : 0;
+            var divisionNavHeight = divisionNav ? divisionNav.offsetHeight : 0;
+
+            var totalPadding = loginNavHeight + homeTabsNavHeight + scrollTextNavHeight + divisionNavHeight;
+            document.body.style.paddingTop = totalPadding + 'px';
+        }
+
+        adjustBodyPadding();
+        window.addEventListener('resize', adjustBodyPadding);
+
+         function updateHomeTabsNavTop() {
+            var loginNav = document.getElementById('loginNav');
+            var homeTabsNav = document.getElementById('homeTabsNav-lay');
+
+            if (loginNav && homeTabsNav) {
+                var loginNavHeight = loginNav.offsetHeight;
+                homeTabsNav.style.top = loginNavHeight + 'px';
+            }
+        }
+
+        updateHomeTabsNavTop();
+
+        window.addEventListener('resize', updateHomeTabsNavTop);
+    });
+
+
+
+    $(window).on('load', function () {
+        var loadingOverlay = $('#loading-overlay');
+
+
+        loadingOverlay.hide();
+
+
+        $('.loading-spinner').css('animation', 'none');
+    });
+
+    $(document).on('click', 'a:not([href^="#"])', function () {
+        var loadingOverlay = $('#loading-overlay');
+
+        loadingOverlay.show();
+    });
+
+    $(document).ready(function () {
+
+        $(document).on("contextmenu", function (e) {
+            e.preventDefault();
+        });
+
+        $(document).keydown(function (e) {
+            if (
+                e.keyCode == 123 ||
+                (e.ctrlKey && e.shiftKey && e.keyCode == 73) ||
+                (e.ctrlKey && e.shiftKey && e.keyCode == 67) ||
+                (e.ctrlKey && e.keyCode == 85) ||
+                (e.ctrlKey && e.shiftKey && e.keyCode == 74)
+            ) {
+                e.preventDefault();
+            }
+        });
+    });
+
+
+    $("#menu-toggle").click(function (e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+        $("#page-content-wrapper").toggleClass("shifted");
+        $("#homeTabsNav").toggleClass("shifted");
+        $("#loginNav").toggleClass("shifted");
+        $("#scrollTextNav-pl").toggleClass("shifted");
+        $("#scrollTextNav").toggleClass("shifted");
+        $("#divisionNav").toggleClass("shifted");
+        $("#homeTabsNav-lay").toggleClass("shifted");
+        $("#scrollTextNav-lay").toggleClass("shifted");
+        $(".division-button").toggleClass("shifted");
+        $(".pages-footer").toggleClass("shifted");
+
+        $(".chevron-rotate").toggleClass("rotate-left");
+    });
+
+    $('.collapsible-menu').on('show.bs.collapse', function () {
+        $(this).prev().find('.caret-rotate').removeClass('collapsed');
+    }).on('hide.bs.collapse', function () {
+        $(this).prev().find('.caret-rotate').addClass('collapsed');
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var rows = document.querySelectorAll('.table tbody tr');
+
+        rows.forEach(function (row) {
+            row.addEventListener('click', function () {
+                rows.forEach(function (r) {
+                    r.classList.remove('selected');
+                });
+                row.classList.add('selected');
+            });
+        });
+    });
+
+
+   
+
+</script>
+
+
+
+@RenderSection("Scripts", required: false)

@@ -1,0 +1,192 @@
+﻿@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@using DUTClinicManagement.Models
+@model Booking
+@inject DUTClinicManagement.Interfaces.IEncryptionService encryptionService
+
+@functions {
+    public string GetEnumDisplayName(Enum enumValue)
+    {
+        var displayAttr = enumValue.GetType()
+                                   .GetMember(enumValue.ToString())
+                                   .First()
+                                   .GetCustomAttribute<DisplayAttribute>();
+
+        return displayAttr?.Name ?? enumValue.ToString();
+    }
+}
+
+@{
+    ViewData["Title"] = "Appointment Details";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+
+    var encryptedAppointmentId = encryptionService.Encrypt(Model.BookingId);
+
+    var statusItems = Enum.GetValues(typeof(BookingStatus))
+       .Cast<BookingStatus>()
+       .Where(s => s != BookingStatus.Pending && s != BookingStatus.Awaiting)
+       .Select(s => new SelectListItem
+               {
+                   Text = s.ToString(),
+                   Value = ((int)s).ToString()
+               }).ToList();
+}
+<a asp-controller="Appointments" asp-action="Appointments" class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4">
+    <i class="bi bi-chevron-left me-2 fs-5"></i><span class="fw-semibold">Back to Appointments</span>
+</a>
+
+<form asp-controller="Appointments" asp-action="UpdateStatusRedirect" method="post">
+    <input type="hidden" name="appointmentId" value="@Model.BookingId" />
+
+    <div class="container my-3 px-4">
+        <div class="card shadow-lg border-0" style="border-left: 6px solid #48AAAD; border-radius: 10px;">
+            <div class="card-header text-white" style="background-color: #48AAAD;">
+                <h3 class="mb-0">##@Model.BookingReference</h3>
+            </div>
+            <div class="card-body px-4 py-4">
+                @if (TempData["Message"] != null)
+                {
+                    <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+                        @Html.Raw(TempData["Message"])
+                        <span class="close" aria-label="Close"><span aria-hidden="true">&times;</span></span>
+                    </div>
+                }
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Patient</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @Model.CreatedBy?.FirstName @Model.CreatedBy?.LastName
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Email</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @Model.CreatedBy?.Email
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Appointment Date</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @Model.BookForDate.ToString("yyyy/MM/dd")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Appointment Time</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @Model.BookForTimeSlot)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Medical Condition</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @Model.MedicalCondition
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Assigned Team(s)</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @{
+                                var assignedTeam = ViewBag.AssignedTeam as List<HospitalManagement.Models.Specialization>;
+                            }
+
+                            @if (assignedTeam != null && assignedTeam.Any())
+                            {
+                                <ul class="mb-0 ps-3">
+                                    @foreach (var specialization in assignedTeam)
+                                    {
+                                        <li>@GetEnumDisplayName(specialization)</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No assigned team available.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="fw-semibold text-muted"></label>
+                        <select asp-for="Status" class="form-select form-select-lg rounded-3" asp-items="statusItems">
+                            <option value="">-- Select Status --</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted">Assigned doctor</label>
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            @Model.AssignedTo.FirstName @Model.AssignedTo.LastName)
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="mb-4">
+                    <label class="fw-semibold text-muted">Additional notes</label>
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                        @Model.AdditionalNotes
+                    </div>
+                </div>
+
+                @if (User.IsInRole("System Administrator"))
+                {
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="fw-semibold text-muted">Created By</label>
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                                @Model.CreatedBy?.FirstName @Model.CreatedBy?.LastName
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-semibold text-muted">Created At</label>
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                                @Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-semibold text-muted">Last Updated By</label>
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                                @Model.ModifiedBy?.FirstName @Model.ModifiedBy?.LastName
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-semibold text-muted">Last Updated At</label>
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                                @Model.LastUpdatedAt.ToString("yyyy/MM/dd HH:mm")
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-end mt-5 gap-3">
+                    <a asp-controller="Appointments" asp-action="X_RayAppointment" asp-route-appointmentId="@encryptedAppointmentId" class="btn btn-outline-success btn-lg">
+                        <i class="fas fa-x-ray me-2"></i> X-Ray
+                    </a>
+                    <a asp-controller="Admissions" asp-action="AdmitPatient" asp-route-appointmentId="@encryptedAppointmentId" class="btn btn-outline-success btn-lg">
+                        <i class="fas fa-procedures me-2"></i> Admit
+                    </a>
+                    <button type="submit" class="btn btn-success px-4 py-2 fs-5">
+                        <i class="fa fa-save me-2" style="font-size: 1.5rem;"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    setTimeout(function () {
+        var msg = document.getElementById("tempDataMessage");
+        if (msg) msg.style.display = "none";
+    }, 7000);
+</script>
