@@ -9,7 +9,7 @@ namespace DUTClinicManagement.Models
         public int MedicationId { get; set; }
 
         public int CategoryId { get; set; }
-        public virtual MedicalHistory Category { get; set; }
+        public virtual MedicationCategory Category { get; set; }
 
         [Required]
         [StringLength(100)]

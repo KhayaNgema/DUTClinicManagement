@@ -52,7 +52,7 @@ public class DUTClinicManagementDbContext : IdentityDbContext<IdentityUser>
     public DbSet<DUTClinicManagement.Models.Room> Rooms { get; set; }
 
     public DbSet<DUTClinicManagement.Models.MedicationCategory> MedicationCategories { get; set; }
-    public DbSet<DUTClinicManagement.Models.DeliveryGuy> DeliveryGuys { get; set; }
+    public DbSet<DUTClinicManagement.Models.DeliveryPersonnel> DeliveryGuys { get; set; }
 
     public DbSet<DUTClinicManagement.Models.Nurse> Nurses { get; set; }
 }

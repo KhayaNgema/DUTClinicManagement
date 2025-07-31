@@ -18,24 +18,32 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using DUTClinicManagement.Models;
+using DUTClinicManagement.Services;
+using DUTClinicManagement.Data;
+using DUTClinicManagement.Interfaces;
 
 namespace DUTClinicManagement.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IUserStore<IdentityUser> _userStore;
-        private readonly IUserEmailStore<IdentityUser> _emailStore;
+        private readonly SignInManager<UserBaseModel> _signInManager;
+        private readonly UserManager<UserBaseModel> _userManager;
+        private readonly IUserStore<UserBaseModel> _userStore;
+        private readonly IUserEmailStore<UserBaseModel> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly FileUploadService _fileUploadService;
+        private readonly DUTClinicManagementDbContext _context;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
-            IUserStore<IdentityUser> userStore,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<UserBaseModel> userManager,
+            IUserStore<UserBaseModel> userStore,
+            SignInManager<UserBaseModel> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            FileUploadService fileUploadService,
+            DUTClinicManagementDbContext context)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -43,6 +51,8 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _fileUploadService = fileUploadService;
+            _context = context;
         }
 
         /// <summary>
@@ -76,8 +86,62 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
             /// </summary>
             [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
+            [Display(Name = "Email address")]
             public string Email { get; set; }
+
+            [Required]
+            [Display(Name = "First name(s)")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last name")]
+            public string LastName { get; set; }
+
+            [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Date of birth")]
+            public DateTime DateOfBirth{ get; set; }
+
+            [Required]
+            [Display(Name = "Profile picture")]
+            public IFormFile ProfilePicture { get; set; }
+
+            [Required]
+            [Display(Name = "Identity number")]
+            public string IdNumber { get; set; }
+
+            [Required]
+            [Display(Name = "Gender")]
+            public string Gender { get; set; }
+
+            [Required]
+            [Display(Name = "Phone number")]
+            [Phone(ErrorMessage = "Invalid phone number format.")]
+            public string PhoneNumber { get; set; }
+
+            [Display(Name = "Alternate phone number")]
+            [Phone(ErrorMessage = "Invalid alternate phone number format.")]
+            public string? AlternatePhoneNumber { get; set; }
+
+            [StringLength(100, ErrorMessage = "Street name cannot exceed 100 characters.")]
+            public string? Street { get; set; }
+
+            [StringLength(100, ErrorMessage = "City name cannot exceed 100 characters.")]
+            public string? City { get; set; }
+
+
+            [Required(ErrorMessage = "Province is required.")]
+            [Display(Name = "Province")]
+            public Province Province { get; set; }
+
+            [Display(Name = "Blood type")]
+            public BloodType? BloodType { get; set; }
+
+            [StringLength(20, ErrorMessage = "Postal code cannot exceed 20 characters.")]
+            public string? PostalCode { get; set; }
+
+            [StringLength(100, ErrorMessage = "Country name cannot exceed 100 characters.")]
+            public string? Country { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -112,18 +176,46 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-                var result = await _userManager.CreateAsync(user, Input.Password);
+                await _context.SaveChangesAsync();
+
+                var newPatient = new Patient
+                {
+                    FirstName = Input.FirstName,
+                    LastName = Input.LastName,
+                    PhoneNumber = Input.PhoneNumber,
+                    AlternatePhoneNumber = Input.AlternatePhoneNumber,
+                    Address = string.Join(", ", new[] {
+                              Input.Street, Input.City, Input.Province.ToString(), Input.PostalCode, Input.Country
+                                                       }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    IsActive = true,
+                    AccessFailedCount = 0,
+                    BloodType = Input.BloodType,
+                    DateOfBirth = Input.DateOfBirth,
+                    CreatedDateTime = DateTime.Now,
+                    IdNumber = Input.IdNumber,
+                    Gender = Input.Gender,
+                    IsSuspended = false,
+                    IsFirstTimeLogin = false,
+                    IsDeleted = false
+                };
+
+                if (Input.ProfilePicture != null && Input.ProfilePicture.Length > 0)
+                {
+                    var playerProfilePicturePath = await _fileUploadService.UploadFileAsync(Input.ProfilePicture);
+                    newPatient.ProfilePicture = playerProfilePicturePath;
+                }
+
+                await _userStore.SetUserNameAsync(newPatient, Input.Email, CancellationToken.None);
+                await _emailStore.SetEmailAsync(newPatient, Input.Email, CancellationToken.None);
+                var result = await _userManager.CreateAsync(newPatient, Input.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var userId = await _userManager.GetUserIdAsync(newPatient);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(newPatient);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
@@ -134,47 +226,36 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    var medicalHistory = new PatientMedicalHistory
                     {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
+                        PatientId = newPatient.Id,
+                        AccessCode = null,
+                        MedicalHistories = null,
+                        QrCodeImage = null,
+                        CreatedAt = DateTime.Now,
+                        ExpiresAt = DateTime.Now,
+                    };
+
+                    _context.Add(medicalHistory);
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToAction("AccountCreatedSuccessfully", "Home");
                 }
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-
-            // If we got this far, something failed, redisplay form
             return Page();
         }
 
-        private IdentityUser CreateUser()
-        {
-            try
-            {
-                return Activator.CreateInstance<IdentityUser>();
-            }
-            catch
-            {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
-            }
-        }
-
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<UserBaseModel> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<UserBaseModel>)_userStore;
         }
     }
 }

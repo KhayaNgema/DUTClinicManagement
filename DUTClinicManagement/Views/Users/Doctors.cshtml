@@ -59,8 +59,6 @@
                             <th><i class="fas fa-user me-1"></i>Doctor</th>
                             <th><i class="fas fa-envelope me-1"></i>Email address</th>
                             <th><i class="fas fa-phone me-1"></i>Phone number</th>
-                            <th><i class="fas fa-clock me-1"></i>Hours</th>
-                            <th><i class="fas fa-toggle-on me-1"></i>Status</th>
                             @if (User.IsInRole("System Administrator"))
                             {
                                 <th><i class="fas fa-user-shield me-1"></i>Created By</th>
@@ -82,10 +80,6 @@
                                 </td>
                                 <td>@doctor.Email</td>
                                 <td>@doctor.PhoneNumber</td>
-                                <td>
-                                    @($"{doctor.AvailableTimings.From:hh\\:mm} - {doctor.AvailableTimings.To:hh\\:mm}")
-                                </td>
-                                <td>@doctor.AvailabilityStatus</td>
                                 @if (User.IsInRole("System Administrator"))
                                 {
                                     <td>@doctor.CreatedBy</td>

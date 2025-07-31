@@ -59,11 +59,7 @@ namespace HospitalManagement.Controllers
             var medications = await _context.MedicationPescription
                 .Include(mp => mp.PrescribedMedication)
                 .Include(mp => mp.Booking).ThenInclude(b => b.CreatedBy)
-                .Include(mp => mp.Admission).ThenInclude(a => a.Patient)
-                .Include(mp => mp.Admission).ThenInclude(a => a.Booking)
-                .Where(mp =>
-                    (mp.Admission != null && mp.Admission.Patient != null && mp.Admission.Patient.Id == user.Id) ||
-                    (mp.Booking != null && mp.Booking.CreatedBy != null && mp.Booking.CreatedBy.Id == user.Id)
+                .Where(mp =>(mp.Booking != null && mp.Booking.CreatedBy != null && mp.Booking.CreatedBy.Id == user.Id)
                 )
                 .ToListAsync();
 
@@ -79,8 +75,6 @@ namespace HospitalManagement.Controllers
                 .Include(mp => mp.PrescribedMedication)
                 .Include(mp => mp.Booking)
                 .ThenInclude(mp => mp.CreatedBy)
-                .Include(mp => mp.Admission)
-                .ThenInclude(mp => mp.Booking)
                 .Include(mp => mp.CreatedBy)
                 .Include(mp => mp.ModifiedBy)
                 .Where(mp => mp.Status == MedicationPescriptionStatus.Pending ||
@@ -99,8 +93,6 @@ namespace HospitalManagement.Controllers
                 .Include(mp => mp.PrescribedMedication)
                 .Include(mp => mp.Booking)
                 .ThenInclude(mp => mp.CreatedBy)
-                .Include(mp => mp.Admission)
-                .ThenInclude(mp => mp.Booking)
                 .Include(mp => mp.CreatedBy)
                 .Include(mp => mp.ModifiedBy)
                 .Where(mp => mp.Status == MedicationPescriptionStatus.Collected)
@@ -133,10 +125,6 @@ namespace HospitalManagement.Controllers
                     .ThenInclude(b => b.CreatedBy)
                 .Include(pr => pr.Booking)
                     .ThenInclude(b => b.AssignedTo)
-                .Include(pr => pr.Admission)
-                    .ThenInclude(a => a.Patient)
-                .Include(pr => pr.Admission)
-                    .ThenInclude(a => a.CreatedBy)
                  .Include(pr => pr.PrescribedMedication)
                 .FirstOrDefaultAsync();
 
@@ -146,10 +134,9 @@ namespace HospitalManagement.Controllers
             }
 
             var booking = pescriptionRequest.Booking;
-            var admission = pescriptionRequest.Admission;
 
-            var patient = booking?.CreatedBy ?? admission?.Patient;
-            var doctor = booking?.AssignedTo ?? admission.CreatedBy;
+            var patient = booking?.CreatedBy;
+            var doctor = booking?.AssignedTo;
 
             if (patient == null || doctor == null)
             {

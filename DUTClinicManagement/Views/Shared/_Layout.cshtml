@@ -19,7 +19,7 @@
     <title>@ViewData["Title"] - MediConnect</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/HospitalManagement.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DUTClinicManagement.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -119,21 +119,6 @@
 
 
     <header>
-        <nav class="navbar navbar-expand-sm" id="loginNav" style="color: white; background-color: #264653;">
-            <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center">
-
-                <div class="d-flex flex-column flex-sm-row">
-                    <div style="margin-bottom: 6px; margin-right: 10px;">
-                        <span><i class="fa fa-phone me-2"></i>+1 (234) 567-890</span>
-                    </div>
-                    <div>
-                        <span><i class="fa fa-envelope me-2"></i>info@mediconnect.com</span>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-
 
         @if (User.Identity.IsAuthenticated)
         {
@@ -142,7 +127,7 @@
         else
         {
 
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm" id="homeTabsNav-lay" style="background-color:#FAFAFA;">
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm" id="homeTabsNav-lay" style="background-color:#010123;">
                 <div class="container-fluid">
                     <div class="container-fluid d-flex align-items-center justify-content-between">
 
@@ -151,23 +136,20 @@
                             {
                                 <a href="#menu-toggle" id="menu-toggle" style="font-size: 26px; color: white; text-decoration: none; margin-right: 10px; padding-right:10px;">&#9776;</a>
                                 <a class="navbar-brand" href="/">
-                                    <span style="color: #022D36;font-size:36px; font-weight:bold;">Medi</span><span style="color: #48AAAD; font-size:36px; font-weight:bold;">Connect</span>
+                                    <img src="~/Images/DUT_clinic_logo.jpeg" alt="Logo" style="height: 60px;" />
                                 </a>
                             }
                             else
                             {
                                 <div class="d-flex justify-content-between align-items-center w-100">
                                     <a class="navbar-brand" href="/">
-                                        <span style="color: #022D36; font-size: 36px; font-weight: bold;">Medi</span>
-                                        <span style="color: #48AAAD; font-size: 36px; font-weight: bold;">Connect</span>
+                                        <img src="~/Images/DUT_clinic_logo.jpeg" alt="Logo" style="height: 60px;" />
                                     </a>
 
                                     <div class="d-flex align-items-center" style="gap: 10px;">
                                         <partial name="_LoginPartial" />
                                     </div>
                                 </div>
-
-
                             }
                         </div>
                     </div>
@@ -394,33 +376,27 @@
 
 
 
-    document.addEventListener("DOMContentLoaded", function () {
+     document.addEventListener("DOMContentLoaded", function () {
         function adjustBodyPadding() {
-            var loginNav = document.getElementById('loginNav');
             var homeTabsNav = document.getElementById('homeTabsNav-lay');
             var scrollTextNav = document.getElementById('scrollTextNav-lay');
             var divisionNav = document.getElementById('divisionNav');
 
-
-            var loginNavHeight = loginNav ? loginNav.offsetHeight : 0;
             var homeTabsNavHeight = homeTabsNav ? homeTabsNav.offsetHeight : 0;
             var scrollTextNavHeight = scrollTextNav ? scrollTextNav.offsetHeight : 0;
-            var divisionNavNavHeight = divisionNav ? divisionNav.offsetHeight : 0;
+            var divisionNavHeight = divisionNav ? divisionNav.offsetHeight : 0;
 
-            var totalPadding = loginNavHeight + homeTabsNavHeight + scrollTextNavHeight + divisionNavNavHeight;
+            var totalPadding = homeTabsNavHeight + scrollTextNavHeight + divisionNavHeight;
             document.body.style.paddingTop = totalPadding + 'px';
         }
 
         adjustBodyPadding();
-
         window.addEventListener('resize', adjustBodyPadding);
 
-        function updateHomeTabsNavTop() {
-            var loginNav = document.getElementById('loginNav');
+         function updateHomeTabsNavTop() {
             var homeTabsNav = document.getElementById('homeTabsNav-lay');
 
-            if (loginNav && homeTabsNav) {
-                var loginNavHeight = loginNav.offsetHeight;
+            if (homeTabsNav) {
                 homeTabsNav.style.top = loginNavHeight + 'px';
             }
         }
@@ -429,6 +405,7 @@
 
         window.addEventListener('resize', updateHomeTabsNavTop);
     });
+
 
 
     function loadTab(tabName) {

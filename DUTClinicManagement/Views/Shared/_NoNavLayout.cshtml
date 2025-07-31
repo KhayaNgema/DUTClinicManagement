@@ -19,7 +19,7 @@
     <title>@ViewData["Title"] - MediConnect</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/MyField.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DUTClinicManagement.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="icon" href="~/favicon.ico" type="image/x-icon" />
@@ -116,23 +116,6 @@
         </div>
     </div>
 
-
-    <header>
-        <nav class="navbar navbar-expand-sm" id="loginNav" style="color: white; background-color: #264653;">
-            <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center">
-
-                <div class="d-flex flex-column flex-sm-row">
-                    <div style="margin-bottom: 6px; margin-right: 10px;">
-                        <span><i class="fa fa-phone me-2"></i>+1 (234) 567-890</span>
-                    </div>
-                    <div>
-                        <span><i class="fa fa-envelope me-2"></i>info@mediconnect.com</span>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-    </header>
     <div id="page-content-wrapper" class="main-content">
         <div class="container-fluid" style="padding-right:0; padding-left:0; margin-right:0!important;">
             <main role="main" class="pb-3">
@@ -143,7 +126,7 @@
 @*     <a asp-controller="Reports" asp-action="TestFeedback" class="floating-button">
         <span class="rotate"><i class="fa fa-comment"></i> Share Feedback</span>
     </a> *@
-    <footer class="py-4 pages-footer" style="background-color: #022D36; color: white; padding-bottom: 0;margin-top:40px;">
+    <footer class="py-4 pages-footer" style="background-color: #010123; color: white; padding-bottom: 0;margin-top:40px;">
         <div class="container">
             <div class="row">
                 <div class="col-md-3">
@@ -261,35 +244,27 @@
         $(this).hide();
     });
 
-
-
-    document.addEventListener("DOMContentLoaded", function () {
+     document.addEventListener("DOMContentLoaded", function () {
         function adjustBodyPadding() {
-            var loginNav = document.getElementById('loginNav');
             var homeTabsNav = document.getElementById('homeTabsNav-lay');
             var scrollTextNav = document.getElementById('scrollTextNav-lay');
             var divisionNav = document.getElementById('divisionNav');
 
-
-            var loginNavHeight = loginNav ? loginNav.offsetHeight : 0;
             var homeTabsNavHeight = homeTabsNav ? homeTabsNav.offsetHeight : 0;
             var scrollTextNavHeight = scrollTextNav ? scrollTextNav.offsetHeight : 0;
-            var divisionNavNavHeight = divisionNav ? divisionNav.offsetHeight : 0;
+            var divisionNavHeight = divisionNav ? divisionNav.offsetHeight : 0;
 
-            var totalPadding = loginNavHeight + homeTabsNavHeight + scrollTextNavHeight + divisionNavNavHeight;
+            var totalPadding = homeTabsNavHeight + scrollTextNavHeight + divisionNavHeight;
             document.body.style.paddingTop = totalPadding + 'px';
         }
 
         adjustBodyPadding();
-
         window.addEventListener('resize', adjustBodyPadding);
 
-        function updateHomeTabsNavTop() {
-            var loginNav = document.getElementById('loginNav');
+         function updateHomeTabsNavTop() {
             var homeTabsNav = document.getElementById('homeTabsNav-lay');
 
-            if (loginNav && homeTabsNav) {
-                var loginNavHeight = loginNav.offsetHeight;
+            if (homeTabsNav) {
                 homeTabsNav.style.top = loginNavHeight + 'px';
             }
         }
@@ -298,6 +273,7 @@
 
         window.addEventListener('resize', updateHomeTabsNavTop);
     });
+
 
 
     $(window).on('load', function () {

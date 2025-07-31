@@ -42,7 +42,7 @@ namespace DUTClinicManagement.Controllers
 
         }
 
-        [Authorize(Roles = "Nurse, Doctor, Receptionist, System Administrator")]
+        [Authorize(Roles = "Nurse, System Administrator")]
         [HttpGet]
         public async Task<IActionResult> Appointments()
         {
@@ -55,48 +55,37 @@ namespace DUTClinicManagement.Controllers
                 .Include(a => a.AssignedTo)
                 .Include(a => a.ModifiedBy);
 
-            if (userRoles.Contains("System Administrator") || userRoles.Contains("Receptionist"))
+            if (userRoles.Contains("System Administrator"))
             {
                 var allAppointments = await query
                     .Where(ap => ap.Status == BookingStatus.Awaiting ||
-                    ap.Status == BookingStatus.Assigned ||
-                    ap.Status == BookingStatus.Completed)
+                                 ap.Status == BookingStatus.Assigned ||
+                                 ap.Status == BookingStatus.Completed)
                     .OrderBy(ap => ap.BookForDate)
                     .ThenBy(ap => ap.BookForTimeSlot)
                     .ToListAsync();
 
                 return View(allAppointments);
             }
-            else if (userRoles.Contains("Doctor"))
+            else if (userRoles.Contains("Nurse"))
             {
-                var doctor = await _context.Doctors
-                    .Where(d => d.Id == user.Id)
-                    .FirstOrDefaultAsync();
-
-                var doctorSpecialization = doctor.Specialization;
-
-                var allowedConditions = ConditionToSpecializationsMap.Map
-                    .Where(entry => entry.Value.Contains(doctorSpecialization))
-                    .Select(entry => entry.Key)
-                    .ToList();
-
-                var filteredAppointments = await query
+                var nurseAppointments = await query
                     .Where(a =>
-                        allowedConditions.Contains(a.MedicalCondition) &&
-                        (a.Status == BookingStatus.Assigned && a.AssignedUserId == user.Id))
-                    .Include(a => a.AssignedTo)
+                        a.AssignedUserId == user.Id &&
+                        (a.Status == BookingStatus.Assigned || a.Status == BookingStatus.Completed))
                     .OrderBy(a => a.BookForDate)
                     .ThenBy(a => a.BookForTimeSlot)
                     .ToListAsync();
 
-                return View(filteredAppointments);
+                return View(nurseAppointments);
             }
 
             return Forbid();
         }
 
 
-        
+
+
 
         [Authorize]
         [HttpGet]
@@ -123,7 +112,6 @@ namespace DUTClinicManagement.Controllers
                 .Where(a => a.BookingId == decryptedAppointmentId)
                 .Include(a => a.CreatedBy)
                 .Include(a => a.ModifiedBy)
-                .Include(a => a.ModifiedBy)
                 .Include(a => a.AssignedTo)
                 .FirstOrDefaultAsync();
 
@@ -132,21 +120,11 @@ namespace DUTClinicManagement.Controllers
                 return NotFound();
             }
 
-            var condition = appointment.MedicalCondition;
-
-            if (ConditionToSpecializationsMap.Map.TryGetValue(condition, out var specializations))
-            {
-                ViewBag.AssignedTeam = specializations;
-            }
-            else
-            {
-                ViewBag.AssignedTeam = new List<Specialization>();
-            }
-
             return View(appointment);
         }
 
-      
+
+
 
         [Authorize]
         [HttpGet]
@@ -176,8 +154,8 @@ namespace DUTClinicManagement.Controllers
                 var user = await _userManager.GetUserAsync(User);
 
                 var activeBookings = await _context.Bookings
-                    .Where(ab => ab.CreatedById == user.Id &&            
-                                 ab.Status == BookingStatus.Assigned && 
+                    .Where(ab => ab.CreatedById == user.Id &&
+                                 ab.Status == BookingStatus.Assigned &&
                                  ab.MedicalCondition == viewModel.MedicalCondition)
                     .ToListAsync();
 
@@ -189,40 +167,24 @@ namespace DUTClinicManagement.Controllers
                     return View(viewModel);
                 }
 
-
                 var bookingReference = GenerateBookingReferenceNumber();
-                var deviceInfo = await _deviceInfoService.GetDeviceInfo();
 
-                var condition = viewModel.MedicalCondition;
-
-                if (!ConditionToSpecializationsMap.Map.TryGetValue(condition, out var requiredSpecializations))
-                {
-                    viewModel.AvailableTimeSlots = GetTimeSlotsByDate(viewModel.BookForDate);
-                    return Json(new
-                    {
-                        success = false,
-                        message = "No specialization mapped to the selected condition."
-                    });
-                }
-
-                var availableDoctor = await _context.Doctors
-                    .Where(d => requiredSpecializations.Contains(d.Specialization)
-                        && !_context.Bookings.Any(b =>
-                            b.AssignedUserId == d.Id &&
-                            b.BookForDate == viewModel.BookForDate &&
-                            b.BookForTimeSlot == viewModel.BookForTimeSlot))
+                var availableNurse = await _context.Nurses
+                    .Where(n => !_context.Bookings.Any(b =>
+                                b.AssignedUserId == n.Id &&
+                                b.BookForDate == viewModel.BookForDate &&
+                                b.BookForTimeSlot == viewModel.BookForTimeSlot))
                     .FirstOrDefaultAsync();
 
-                if (availableDoctor == null)
+                if (availableNurse == null)
                 {
                     viewModel.AvailableTimeSlots = GetTimeSlotsByDate(viewModel.BookForDate);
                     return Json(new
                     {
                         success = false,
-                        message = "No available doctor found for the selected condition and time slot."
+                        message = "No available nurse found for the selected time slot."
                     });
                 }
-
 
                 var newAppointment = new Booking
                 {
@@ -237,13 +199,10 @@ namespace DUTClinicManagement.Controllers
                     LastUpdatedAt = DateTime.Now,
                     BookingReference = bookingReference,
                     BookForTimeSlot = viewModel.BookForTimeSlot,
-                    AssignedUserId = availableDoctor.Id  
+                    AssignedUserId = availableNurse.Id
                 };
 
                 _context.Add(newAppointment);
-                await _context.SaveChangesAsync();
-
-                _context.Update(newAppointment);
                 await _context.SaveChangesAsync();
 
                 var patientMedicalRecord = await _context.PatientMedicalHistories
@@ -257,39 +216,7 @@ namespace DUTClinicManagement.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                var newPayment = new Payment
-                {
-                    ReferenceNumber = GeneratePaymentReferenceNumber(),
-                    PaymentMethod = PaymentMethod.Credit_Card,
-                    AmountPaid = 90,
-                    PaymentDate = DateTime.Now,
-                    PaymentMadeById = user.Id,
-                    Status = PaymentPaymentStatus.Unsuccessful,
-                    DeviceInfoId = deviceInfo.DeviceInfoId,
-                };
-
-                _context.Add(newPayment);
-                await _context.SaveChangesAsync();
-
-                var appointment = await _context.Bookings
-                    .Include(a => a.CreatedBy)
-                    .FirstOrDefaultAsync(a => a.BookingId == newAppointment.BookingId);
-
-                var payment = await _context.Payments
-                    .FirstOrDefaultAsync(p => p.PaymentId == newPayment.PaymentId);
-
-                var encryptedAppointmentId = _encryptionService.Encrypt(appointment.BookingId);
-                int paymentId = payment.PaymentId;
-                decimal amount = newPayment.AmountPaid;
-                string appointmentId = encryptedAppointmentId;
-
-                var returnUrl = Url.Action("PayFastReturn", "Appointments", new { paymentId, appointmentId, amount }, Request.Scheme);
-                returnUrl = HttpUtility.UrlEncode(returnUrl);
-                var cancelUrl = "https://102.37.16.88:2002/Appointments/MyAppointments";
-
-                string paymentUrl = await GeneratePayFineFastPaymentUrl(paymentId, amount, appointmentId, returnUrl, cancelUrl);
-
-                return Redirect(paymentUrl);
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
@@ -305,6 +232,24 @@ namespace DUTClinicManagement.Controllers
                     }
                 });
             }
+        }
+
+        private string GenerateBookingReferenceNumber()
+        {
+            var year = DateTime.Now.Year.ToString().Substring(2);
+            var month = DateTime.Now.Month.ToString("D2");
+            var day = DateTime.Now.Day.ToString("D2");
+
+            const string numbers = "0123456789";
+            const string bookingLetters = "REF";
+
+            var random = new Random();
+            var randomNumbers = new string(Enumerable.Repeat(numbers, 4)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            var bookLetters = bookingLetters.ToString();
+
+            return $"{year}{month}{day}{randomNumbers}{bookLetters}";
         }
 
         private List<SelectListItem> GetTimeSlotsByDate(DateTime date)
@@ -333,34 +278,14 @@ namespace DUTClinicManagement.Controllers
             var allSlots = TimeSlotGenerator.GenerateDefaultSlots(date);
             var availableSlots = new List<SelectListItem>();
 
-            if (!ConditionToSpecializationsMap.Map.TryGetValue(condition, out var requiredSpecializations))
-            {
-                return Json(new List<object>()); 
-            }
-
             foreach (var slot in allSlots)
             {
                 string slotValue = slot.From.ToString(@"hh\:mm");
 
-                var specializedDoctors = _context.Doctors
-                    .Where(d => requiredSpecializations.Contains(d.Specialization))
-                    .ToList();
+                bool isSlotBooked = _context.Bookings
+                    .Any(b => b.BookForDate.Date == date.Date && b.BookForTimeSlot == slotValue);
 
-                if (!specializedDoctors.Any())
-                {
-                    continue;
-                }
-
-                var bookedDoctorIds = _context.Bookings
-                    .Where(b => b.BookForDate.Date == date.Date && b.BookForTimeSlot == slotValue)
-                    .Select(b => b.AssignedUserId)
-                    .ToList();
-
-                var availableDoctors = specializedDoctors
-                    .Where(d => !bookedDoctorIds.Contains(d.Id))
-                    .ToList();
-
-                if (availableDoctors.Any())
+                if (!isSlotBooked)
                 {
                     string fromText = DateTime.Today.Add(slot.From).ToString("HH:mm");
                     string toText = DateTime.Today.Add(slot.To).ToString("HH:mm");

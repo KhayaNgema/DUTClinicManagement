@@ -73,7 +73,7 @@
                     <div class="card appointment-card rounded-4 p-3 h-100">
                         <div class="card-body pb-5">
                             <h5 class="appointment-header mb-3">
-                                @(medication.Admission?.Booking?.MedicalCondition ?? medication.Booking?.MedicalCondition)
+                                @(medication.Booking?.MedicalCondition)
                             </h5>
                             <p class="mb-1"><strong>Next Collection Date:</strong> @medication.NextCollectionDate</p>
                             <p class="mb-1"><strong>Status:</strong> <span class="badge badge-status">@medication.Status</span></p>

@@ -4,7 +4,14 @@
     ViewData["Title"] = "Access denied";
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+<div class="access-denied-container" style="padding: 40px;">
+    <header>
+        <h1 class="text-danger text-center" style="font-size: 2rem;">@ViewData["Title"]</h1>
+        <p class="text-danger text-center" style="font-size: 1.1rem;">You do not have access to this resource.</p>
+    </header>
+    <div class="create-button text-center mt-4">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-create" style="white-space: nowrap; font-size: 1.25rem; padding: 12px 24px;" id="addButton">
+            <i class="fas fa-home"></i> Home
+        </a>
+    </div>
+</div>

@@ -89,28 +89,6 @@
                             @Model.MedicalCondition
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="fw-semibold text-muted">Assigned Team(s)</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
-                            @{
-                                var assignedTeam = ViewBag.AssignedTeam as List<HospitalManagement.Models.Specialization>;
-                            }
-
-                            @if (assignedTeam != null && assignedTeam.Any())
-                            {
-                                <ul class="mb-0 ps-3">
-                                    @foreach (var specialization in assignedTeam)
-                                    {
-                                        <li>@GetEnumDisplayName(specialization)</li>
-                                    }
-                                </ul>
-                            }
-                            else
-                            {
-                                <span class="text-muted">No assigned team available.</span>
-                            }
-                        </div>
-                    </div>
                 </div>
 
 

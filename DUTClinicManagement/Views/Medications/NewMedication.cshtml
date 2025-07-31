@@ -86,7 +86,7 @@
 
                     <div class="mb-4">
                         <label asp-for="DosageForm" class="fw-semibold text-muted"></label>
-                        <select asp-for="DosageForm" class="form-select form-select-lg rounded-3" asp-items="Html.GetEnumSelectList<HospitalManagement.Models.DosageForm>()">
+                        <select asp-for="DosageForm" class="form-select form-select-lg rounded-3" asp-items="Html.GetEnumSelectList<DUTClinicManagement.Models.DosageForm>()">
                             <option value="">-- Select Dosage form --</option>
                         </select>
                         <span asp-validation-for="DosageForm" class="text-danger small"></span>
@@ -94,7 +94,7 @@
 
                     <div class="mb-4">
                         <label asp-for="Strength" class="fw-semibold text-muted"></label>
-                        <select asp-for="Strength" class="form-select form-select-lg rounded-3" asp-items="Html.GetEnumSelectList<HospitalManagement.Models.Strength>()">
+                        <select asp-for="Strength" class="form-select form-select-lg rounded-3" asp-items="Html.GetEnumSelectList<DUTClinicManagement.Models.Strength>()">
                             <option value="">-- Select Strength --</option>
                         </select>
                         <span asp-validation-for="Strength" class="text-danger small"></span>
@@ -102,7 +102,7 @@
 
                     <div class="mb-4">
                         <label asp-for="UnitOfMeasure" class="fw-semibold text-muted"></label>
-                        <select asp-for="UnitOfMeasure" class="form-select form-select-lg rounded-3" asp-items="Html.GetEnumSelectList<HospitalManagement.Models.UnitOfMeasure>()">
+                        <select asp-for="UnitOfMeasure" class="form-select form-select-lg rounded-3" asp-items="Html.GetEnumSelectList<DUTClinicManagement.Models.UnitOfMeasure>()">
                             <option value="">-- Select Unit of measure --</option>
                         </select>
                         <span asp-validation-for="UnitOfMeasure" class="text-danger small"></span>

@@ -11,8 +11,8 @@ namespace DUTClinicManagement.Models
         public string Model { get; set; }
         public string RegistrationNumber { get; set; }
 
-        public int DeliveryGuyId { get; set; }
+        public string DeliveryGuyId { get; set; }
         [ForeignKey("DeliveryGuyId")]
-        public virtual DeliveryGuy DeliveryGuy { get; set; }
+        public virtual DeliveryPersonnel DeliveryGuy { get; set; }
     }
 }

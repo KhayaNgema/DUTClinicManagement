@@ -20,7 +20,7 @@ using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Data;
 using System.ComponentModel;
 
-namespace HospitalManagement.Areas.Identity.Pages.Account
+namespace DUTClinicManagement.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {

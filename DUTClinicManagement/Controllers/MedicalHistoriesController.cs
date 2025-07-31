@@ -191,7 +191,6 @@ namespace DUTClinicManagement.Controllers
                     var medicationPescription = new MedicationPescription
                     {
                         AdditionalNotes = viewModel.Notes,
-                        AdmissionId = null,
                         CollectAfterCount = null,
                         CreatedAt = DateTime.Now,
                         LastUpdatedAt = DateTime.Now,

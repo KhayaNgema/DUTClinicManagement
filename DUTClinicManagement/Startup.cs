@@ -121,6 +121,7 @@ public class Startup
         services.AddScoped<FileUploadService>();
         services.AddScoped<RandomPasswordGeneratorService>();
         services.AddScoped<EmailService>();
+        services.AddScoped<IActivityLogger, ActivityLogger>();
         services.AddHttpClient<DeviceInfoService>();
         services.AddHttpClient();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

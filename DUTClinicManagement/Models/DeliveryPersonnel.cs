@@ -1,6 +1,6 @@
 ﻿namespace DUTClinicManagement.Models
 {
-    public class DeliveryGuy: UserBaseModel
+    public class DeliveryPersonnel: UserBaseModel
     {
         public string DriverLicenseNumber { get; set; }
         public DateTime LicenseExpiryDate { get; set; }
