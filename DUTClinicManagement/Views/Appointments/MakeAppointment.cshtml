@@ -17,7 +17,7 @@
         </span>
     </div>
 }
-<div class="container my-3 px-4">
+<div class="container my-3 px-2">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
             <div class="card shadow rounded-4 p-4">
@@ -25,11 +25,21 @@
                 <form asp-action="MakeAppointment" method="post" id="appointmentForm">
                     @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
+                    <div class="mb-3">
+                    <label asp-for="AppointmentType" class="form-label fw-semibold"></label>
+                    <select asp-for="AppointmentType" id="MedicalCondition" class="form-select rounded-3"
+                            asp-items="Html.GetEnumSelectList<AppointmentType>()">
+                        <option value="">-- Appointment Type --</option>
+                    </select>
+                     </div>
+                    <div class="mb-3">
+                    <label asp-for="MedicalCondition" class="form-label fw-semibold"></label>
                     <select asp-for="MedicalCondition" id="MedicalCondition" class="form-select rounded-3"
                             asp-items="Html.GetEnumSelectList<CommonMedicalCondition>()">
                         <option value="">-- Select Condition --</option>
                     </select>
+                     </div>
+
                     <div class="mb-3">
                         <label asp-for="BookForDate" class="form-label fw-semibold"></label>
                         <input asp-for="BookForDate" class="form-control rounded-3" type="date" id="BookForDate" />

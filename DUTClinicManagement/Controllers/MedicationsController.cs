@@ -156,7 +156,6 @@ namespace HospitalManagement.Controllers
                 DoctorLastName = doctor.LastName,
                 DoctorEmail = doctor.Email,
                 DoctorPhoneNumber = doctor.PhoneNumber,
-                DoctorSpecialization = doctor.Specialization,
                 LastCollectionDate = pescriptionRequest.LastCollectionDate,
                 NextCollectionDate = pescriptionRequest.NextCollectionDate,
                 PescribedMedication = pescriptionRequest.PrescribedMedication,
@@ -166,7 +165,6 @@ namespace HospitalManagement.Controllers
                 CollectAfterCount = pescriptionRequest.CollectAfterCount,
                 CollectInterval = pescriptionRequest.CollectionInterval,
                 CollectUntilDate = pescriptionRequest.ExpiresAt,
-                DoctorDepartment = doctor.Department,
                 Status = pescriptionRequest.Status,
                 
             };

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Pharmacist";
+    ViewData["Title"] = "Delivery Personnel";
     Layout = "~/Views/Shared/_PagesLayout.cshtml";
 }
 
@@ -33,8 +33,15 @@
 
     .card-icon {
         font-size: 2.5rem;
-        color: #010123;
         margin-bottom: 1rem;
+        color:#010123;
+    }
+
+    .text-warning {
+        color: #f0ad4e !important; /* to match bootstrap warning */
+    }
+    .text-success {
+        color: #28a745 !important; /* to match bootstrap success */
     }
 
     .card-title {
@@ -72,10 +79,6 @@
         background-color: #01424e;
         text-decoration: none;
     }
-
-    .card-icon-wrapper {
-        position: relative;
-    }
 </style>
 
 <div class="container">
@@ -83,30 +86,28 @@
     <h2 class="dashboard-heading">Welcome, @ViewBag.LoggedInUser 👋</h2>
 
     <div class="row g-4">
-        <!-- Medication Requests -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
-                <div class="card-icon-wrapper">
-                    <i class="fas fa-clipboard-list card-icon"></i>
+                <div class="card-icon">
+                    <i class="fas fa-truck-loading"></i>
                 </div>
-                <div class="card-title">Medication Requests</div>
-                <div class="card-text">New prescription medication requests are listed here</div>
-                <a asp-controller="Medications" asp-action="MedicationPescriptionRequests" class="dashboard-link">
-                    View Requests <i class="fas fa-arrow-right"></i>
+                <div class="card-title">Pending Deliveries</div>
+                <div class="card-text">Deliveries that are assigned but not yet completed.</div>
+                <a asp-controller="Deliveries" asp-action="PendingDeliveries" class="dashboard-link">
+                    View Pending <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
 
-        <!-- Previous Medication Requests -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
-                <div class="card-icon-wrapper">
-                    <i class="fas fa-box-open card-icon"></i>
+                <div class="card-icon">
+                    <i class="fas fa-history"></i>
                 </div>
-                <div class="card-title">Previous Medication Requests</div>
-                <div class="card-text">Previous medication prescription requests are listed here</div>
-                <a asp-controller="Medications" asp-action="PreviousMedicationRequests" class="dashboard-link">
-                    View Requests <i class="fas fa-arrow-right"></i>
+                <div class="card-title">Previous Deliveries</div>
+                <div class="card-text">Completed delivery history is listed here.</div>
+                <a asp-controller="Deliveries" asp-action="PreviousDeliveries" class="dashboard-link">
+                    View History <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>

@@ -29,7 +29,7 @@ namespace DUTClinicManagement.Controllers
             _emailService = emailService;
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, Nurse")]
         [HttpGet]
         public async Task<IActionResult> PatientsMedicalHistory()
         {
@@ -40,7 +40,7 @@ namespace DUTClinicManagement.Controllers
             return View(medicalHistory);
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, Nurse")]
         [HttpGet]
         public async Task<IActionResult> PatientMedicalRecord(string medicalHistoryId)
         {
@@ -57,6 +57,7 @@ namespace DUTClinicManagement.Controllers
                     .Collection(mr => mr.MedicalHistories)
                     .Query()
                     .Include(mh => mh.Doctor)
+                    .Include(mh => mh.Nurse)
                     .OrderByDescending(mh => mh.CreatedAt)
                     .LoadAsync();
             }
@@ -64,7 +65,7 @@ namespace DUTClinicManagement.Controllers
             return View(medicalRecord);
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, Nurse")]
         [HttpGet]
         public async Task<IActionResult> MedicalHistory(string medicalHistoryId)
         {
@@ -104,7 +105,7 @@ namespace DUTClinicManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, Nurse")]
         [HttpGet]
         public async Task<IActionResult> NewMedicalRecord(string medicalHistoryId)
         {
@@ -141,20 +142,25 @@ namespace DUTClinicManagement.Controllers
             return View(viewModel);
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, Nurse")]
         [HttpPost]
         public async Task<IActionResult> NewMedicalRecord(NewMedicalRecordViewModel viewModel)
         {
             try
             {
                 var user = await _userManager.GetUserAsync(User);
+                var roles = await _userManager.GetRolesAsync(user);
+
+                var isDoctor = roles.Contains("Doctor");
+                var isNurse = roles.Contains("Nurse");
 
                 var newMedicalRecord = new MedicalHistory
                 {
                     PatientId = viewModel.PatientId,
                     ChiefComplaint = viewModel.ChiefComplaint,
                     Diagnosis = viewModel.Diagnosis,
-                    DoctorId = user.Id,
+                    DoctorId = isDoctor ? user.Id : null,
+                    NurseId = isNurse ? user.Id : null,
                     FollowUpInstructions = viewModel.FollowUpInstructions,
                     Immunizations = viewModel.Immunizations,
                     HeightCm = viewModel.HeightCm,
@@ -183,10 +189,9 @@ namespace DUTClinicManagement.Controllers
                 await _context.SaveChangesAsync();
 
                 var booking = await _context.Bookings
-                    .Where(b => b.BookingId == viewModel.BookingId)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(b => b.BookingId == viewModel.BookingId);
 
-                if(booking != null)
+                if (booking != null)
                 {
                     var medicationPescription = new MedicationPescription
                     {
@@ -204,7 +209,6 @@ namespace DUTClinicManagement.Controllers
                         BookingId = viewModel.BookingId,
                         PrescribedMedication = new List<Medication>(),
                         AccessCode = booking.BookingReference,
-
                     };
 
                     if (viewModel.PrescribedMedication != null && viewModel.PrescribedMedication.Any())
@@ -218,10 +222,6 @@ namespace DUTClinicManagement.Controllers
                             {
                                 medicationPescription.PrescribedMedication.Add(medicationEntity);
                             }
-                            else
-                            {
-
-                            }
                         }
                     }
 
@@ -232,11 +232,9 @@ namespace DUTClinicManagement.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-
                 TempData["Message"] = $"You have successfully added new medical record for {viewModel.FirstName} {viewModel.LastName}";
 
                 var encryptedMedicalRecordId = _encryptionService.Encrypt(viewModel.PatientMedicalHistoryId);
-
                 return RedirectToAction(nameof(PatientMedicalRecord), new { medicalHistoryId = encryptedMedicalRecordId });
             }
             catch (Exception ex)

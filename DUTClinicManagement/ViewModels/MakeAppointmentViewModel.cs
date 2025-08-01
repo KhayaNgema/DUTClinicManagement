@@ -27,6 +27,9 @@ namespace DUTClinicManagement.ViewModels
         public string? AdditionalNotes { get; set; }
 
         public string PatientId { get; set; }
+
+        public AppointmentType AppointmentType { get; set; }
+
     }
 
 }

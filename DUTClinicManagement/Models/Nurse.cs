@@ -5,8 +5,6 @@
         public string LicenseNumber { get; set; }
         public DateTime LicenseExpiryDate { get; set; }
 
-        public string Department { get; set; }
-
         public bool IsOnDuty { get; set; }
 
         public string Qualification { get; set; }

@@ -8,133 +8,117 @@
     var encryptedMedicalHistoryId = encryptionService.Encrypt(Model.PatientMedicalHistoryId);
 }
 
-<a asp-controller="MedicalHistories" asp-action="PatientsMedicalHistory" asp-route-id="@Model.PatientId" class="text-decoration-none d-inline-flex align-items-center back-link mt-4 ms-4">
-    <i class="bi bi-chevron-left me-1"></i>Close
+<a asp-controller="MedicalHistories" asp-action="PatientsMedicalHistory" asp-route-id="@Model.PatientId"
+   class="text-decoration-none d-inline-flex align-items-center back-link mt-4 ms-4 text-dark fw-semibold">
+    <i class="bi bi-chevron-left me-1"></i> Back to Records
 </a>
 
-<div class="container my-3 px-4">
-    <div class="card shadow-lg border-0" style="border-left: 6px solid #48AAAD; border-radius: 10px;">
-        <div class="card-header text-white" style="background-color: #48AAAD;">
-            <h3 class="mb-0">@Model.Patient.FirstName @Model.Patient.LastName Medical History</h3>
+<div class="container my-4 px-3 px-md-5">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <div class="card-header text-white py-3 px-4" style="background-color: #010123;">
+            <h4 class="mb-0">@Model.Patient.FirstName @Model.Patient.LastName — Medical History</h4>
         </div>
 
-        <div class="card-body px-4 py-4">
-            <h5 class="text-muted mb-3">General Information</h5>
-
-            <dl class="row">
-                @if (Model.QrCodeImage != null)
-                {
-                    <div class="mb-4 text-center">
-                        <label class="fw-semibold text-muted">QR Code</label>
-                        <div class="border rounded p-3 shadow-sm d-inline-block" style="border-left: 5px solid #48AAAD;">
-                            <img src="data:image/png;base64,@Convert.ToBase64String(Model.QrCodeImage)" alt="QR Code" style="width:150px; height:150px;" />
-                        </div>
-                    </div>
-                }
-            </dl>
-
-            <h5 class="text-muted mb-3">Patient Information</h5>
-
-            <div class="row mb-3">
+        <div class="card-body p-4">
+            <h5 class="text-muted mb-4">Patient Information</h5>
+            <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted">First Name</label>
-                    <input class="form-control" value="@Model.Patient?.FirstName" readonly />
+                    <label class="form-label fw-medium text-muted">First Name</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.FirstName" readonly />
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted">Last Name</label>
-                    <input class="form-control" value="@Model.Patient?.LastName" readonly />
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted">Date of Birth</label>
-                    <input class="form-control" value="@Model.Patient?.DateOfBirth.ToString("yyyy-MM-dd")" readonly />
+                    <label class="form-label fw-medium text-muted">Last Name</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.LastName" readonly />
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold text-muted">Gender</label>
-                    <input class="form-control" value="@Model.Patient?.Gender" readonly />
+                    <label class="form-label fw-medium text-muted">Date of Birth</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.DateOfBirth.ToString("yyyy-MM-dd")" readonly />
                 </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted">ID Number</label>
-                    <input class="form-control" value="@Model.Patient?.IdNumber" readonly />
+                <div class="col-md-6">
+                    <label class="form-label fw-medium text-muted">Gender</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.Gender" readonly />
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted">Phone Number</label>
-                    <input class="form-control" value="@Model.Patient?.PhoneNumber" readonly />
+                    <label class="form-label fw-medium text-muted">ID Number</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.IdNumber" readonly />
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold text-muted">Alternate Phone Number</label>
-                    <input class="form-control" value="@Model.Patient?.AlternatePhoneNumber" readonly />
+                    <label class="form-label fw-medium text-muted">Phone</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.PhoneNumber" readonly />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-medium text-muted">Alt. Phone</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.AlternatePhoneNumber" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium text-muted">Email</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.Email" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium text-muted">Address</label>
+                    <input class="form-control shadow-sm rounded-3" value="@Model.Patient?.Address" readonly />
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold text-muted">Email</label>
-                <input class="form-control" value="@Model.Patient?.Email" readonly />
-            </div>
+            <hr class="my-5" />
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold text-muted">Address</label>
-                <input class="form-control" value="@Model.Patient?.Address" readonly />
-            </div>
-
-            <h5 class="text-muted mt-4">Medical History Records</h5>
-
-            <div class="d-flex justify-content-end align-items-center mb-3 px-3">
-                <a href="@Url.Action("NewMedicalRecord", "MedicalHistories", new { medicalHistoryId = encryptedMedicalHistoryId })" class="btn btn-primary" id="addButton">
-                    <i class="bi bi-plus-circle me-1"></i> New Record
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-muted">Medical History Records</h5>
+                <a href="@Url.Action("NewMedicalRecord", "MedicalHistories", new { medicalHistoryId = encryptedMedicalHistoryId })"
+                   class="btn btn-dark rounded-pill px-4 py-2">
+                    <i class="bi bi-plus-circle me-2"></i> Add Record
                 </a>
             </div>
 
             @if (TempData["Message"] != null)
             {
-                <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+                <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
                     @Html.Raw(TempData["Message"])
-                    <span class="close" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
 
             @if (Model.MedicalHistories != null && Model.MedicalHistories.Any())
             {
-                <div class="table-responsive">
-                    <table class="table table-striped table-borderless" id="appointmentsTable">
-                        <thead class="custom-thead">
-                            <tr>
-                                <th>Date</th>
-                                <th>Doctor</th>
-                                <th>Diagnosis</th>
-                                <th>Treatment</th>
-                                <th>Vitals</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var history in Model.MedicalHistories.OrderByDescending(h => h.VisitDate))
-                            {
-                                var encryptedId = encryptionService.Encrypt(history.MedicalHistoryId);
+<div class="table-responsive">
+    <table class="table table-hover align-middle text-nowrap">
+        <thead style="background-color: #010123;" class="text-white">
+            <tr>
+                <th>Date</th>
+                <th>Seen By</th>
+                <th>Diagnosis</th>
+                <th>Treatment</th>
+                <th>Vitals</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var history in Model.MedicalHistories.OrderByDescending(h => h.VisitDate))
+            {
+                var encryptedId = encryptionService.Encrypt(history.MedicalHistoryId);
+                var seenBy = history.Doctor != null
+                    ? $"{history.Doctor.FirstName} {history.Doctor.LastName} (Doctor)"
+                    : history.Nurse != null
+                        ? $"{history.Nurse.FirstName} {history.Nurse.LastName} (Nurse)"
+                        : "Unknown";
 
-                                <tr class="clickable-row" data-id="@encryptedId" style="cursor: pointer;">
-                                    <td>@history.VisitDate.ToShortDateString()</td>
-                                    <td>@history.Doctor?.FirstName @history.Doctor?.LastName</td>
-                                    <td>@history.Diagnosis</td>
-                                    <td>@history.Treatment</td>
-                                    <td>@history.Vitals</td>
-                                    <td>@history.Notes</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                <tr class="clickable-row" data-id="@encryptedId" style="cursor: pointer;">
+                    <td>@history.VisitDate.ToString("yyyy-MM-dd")</td>
+                    <td>@seenBy</td>
+                    <td>@history.Diagnosis</td>
+                    <td>@history.Treatment</td>
+                    <td>@history.Vitals</td>
+                    <td>@history.Notes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
             }
             else
             {
-                <div class="alert alert-info text-center">
+                <div class="alert alert-info text-center my-4">
                     No medical history records found for this patient.
                 </div>
             }
@@ -142,20 +126,23 @@
     </div>
 </div>
 
-<script>
-    setTimeout(function () {
-        document.getElementById("tempDataMessage").style.display = "none";
-    }, 7000);
+@section Scripts {
+    <script>
+        setTimeout(() => {
+            const alert = document.getElementById("tempDataMessage");
+            if (alert) alert.style.display = "none";
+        }, 7000);
 
-    function setupRowClicks() {
-        document.querySelectorAll('#appointmentsTable .clickable-row').forEach(row => {
-            row.addEventListener('click', function () {
-                const encryptedMedicalHistoryId = this.getAttribute('data-id');
-                const url = '@Url.Action("MedicalHistory", "MedicalHistories")';
-                window.location.href = `${url}?medicalHistoryId=${encodeURIComponent(encryptedMedicalHistoryId)}`;
+        function setupRowClicks() {
+            document.querySelectorAll('.clickable-row').forEach(row => {
+                row.addEventListener('click', function () {
+                    const encryptedMedicalHistoryId = this.getAttribute('data-id');
+                    const url = '@Url.Action("MedicalHistory", "MedicalHistories")';
+                    window.location.href = `${url}?medicalHistoryId=${encodeURIComponent(encryptedMedicalHistoryId)}`;
+                });
             });
-        });
-    }
+        }
 
-    document.addEventListener("DOMContentLoaded", setupRowClicks);
-</script>
+        document.addEventListener("DOMContentLoaded", setupRowClicks);
+    </script>
+}

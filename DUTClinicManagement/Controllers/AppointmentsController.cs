@@ -102,7 +102,7 @@ namespace DUTClinicManagement.Controllers
             return View(myAppointments);
         }
 
-        [Authorize(Roles = "Patient, Doctor, System Administrator")]
+        [Authorize(Roles = "Patient, Doctor, Nurse, System Administrator")]
         [HttpGet]
         public async Task<IActionResult> AppointmentDetails(string appointmentId)
         {
@@ -192,14 +192,15 @@ namespace DUTClinicManagement.Controllers
                     BookForDate = viewModel.BookForDate,
                     MedicalCondition = viewModel.MedicalCondition,
                     AdditionalNotes = viewModel.AdditionalNotes,
-                    Status = BookingStatus.Pending,
+                    Status = BookingStatus.Assigned,
                     CreatedById = user.Id,
                     CreatedAt = DateTime.Now,
                     UpdatedById = user.Id,
                     LastUpdatedAt = DateTime.Now,
                     BookingReference = bookingReference,
                     BookForTimeSlot = viewModel.BookForTimeSlot,
-                    AssignedUserId = availableNurse.Id
+                    AssignedUserId = availableNurse.Id,
+                    AppointmentType = viewModel.AppointmentType
                 };
 
                 _context.Add(newAppointment);
@@ -275,6 +276,12 @@ namespace DUTClinicManagement.Controllers
         [HttpGet]
         public JsonResult GetAvailableTimeSlots(DateTime date, CommonMedicalCondition condition)
         {
+            var nurses = _context.Nurses.ToList();
+            if (!nurses.Any())
+            {
+                return Json(new List<object>());
+            }
+
             var allSlots = TimeSlotGenerator.GenerateDefaultSlots(date);
             var availableSlots = new List<SelectListItem>();
 
@@ -303,6 +310,65 @@ namespace DUTClinicManagement.Controllers
                 .ToList();
 
             return Json(freeSlots);
+        }
+
+
+        [Authorize(Roles = "Nurse, Doctor, System Administrator")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatusRedirect(int appointmentId, BookingStatus status, IFormFile XRayImages)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var xrayAppointment = await _context.Bookings
+                .OfType<X_RayAppointment>()
+                .Include(b => b.Patient)
+                .Include(b => b.ModifiedBy)
+                .FirstOrDefaultAsync(b => b.BookingId == appointmentId);
+
+            if (xrayAppointment != null)
+            {
+                xrayAppointment.Status = status;
+                xrayAppointment.LastUpdatedAt = DateTime.Now;
+                xrayAppointment.UpdatedById = user.Id;
+
+                if (XRayImages != null && XRayImages.Length > 0)
+                {
+                    var playerProfilePicturePath = await _fileUploadService.UploadFileAsync(XRayImages);
+                    xrayAppointment.ScannerImage = playerProfilePicturePath;
+                }
+
+                _context.Update(xrayAppointment);
+                await _context.SaveChangesAsync();
+
+                TempData["Message"] = $"You have successfully updated this appointment to {status}.";
+
+                var encryptedId = _encryptionService.Encrypt(appointmentId);
+                return RedirectToAction(nameof(AppointmentDetails), new { appointmentId = encryptedId });
+            }
+
+            var booking = await _context.Bookings
+                .Where(b => !(b is X_RayAppointment))
+                .Include(b => b.Patient)
+                .Include(b => b.ModifiedBy)
+                .FirstOrDefaultAsync(b => b.BookingId == appointmentId);
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            booking.Status = status;
+            booking.LastUpdatedAt = DateTime.Now;
+            booking.UpdatedById = user.Id;
+
+            _context.Update(booking);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = $"You have successfully updated this appointment to {status}.";
+
+            var encryptedBookingId = _encryptionService.Encrypt(appointmentId);
+            return RedirectToAction(nameof(AppointmentDetails), new { appointmentId = encryptedBookingId });
         }
     }
 }

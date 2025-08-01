@@ -4,6 +4,7 @@ using DUTClinicManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DUTClinicManagement.Migrations
 {
     [DbContext(typeof(DUTClinicManagementDbContext))]
-    partial class DUTClinicManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250801105331_RemoveQuais")]
+    partial class RemoveQuais
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,9 +69,6 @@ namespace DUTClinicManagement.Migrations
 
                     b.Property<string>("AdditionalNotes")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("AppointmentType")
-                        .HasColumnType("int");
 
                     b.Property<string>("AssignedUserId")
                         .HasColumnType("nvarchar(450)");
@@ -216,6 +216,7 @@ namespace DUTClinicManagement.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DoctorId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.PrimitiveCollection<string>("FollowUpInstructions")
@@ -235,9 +236,6 @@ namespace DUTClinicManagement.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NurseId")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PatientId")
                         .IsRequired()
@@ -282,8 +280,6 @@ namespace DUTClinicManagement.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("DoctorId");
-
-                    b.HasIndex("NurseId");
 
                     b.HasIndex("PatientId");
 
@@ -1169,7 +1165,7 @@ namespace DUTClinicManagement.Migrations
 
             modelBuilder.Entity("DUTClinicManagement.Models.Booking", b =>
                 {
-                    b.HasOne("DUTClinicManagement.Models.Nurse", "AssignedTo")
+                    b.HasOne("DUTClinicManagement.Models.Doctor", "AssignedTo")
                         .WithMany()
                         .HasForeignKey("AssignedUserId");
 
@@ -1208,11 +1204,9 @@ namespace DUTClinicManagement.Migrations
 
                     b.HasOne("DUTClinicManagement.Models.Doctor", "Doctor")
                         .WithMany()
-                        .HasForeignKey("DoctorId");
-
-                    b.HasOne("DUTClinicManagement.Models.Nurse", "Nurse")
-                        .WithMany()
-                        .HasForeignKey("NurseId");
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DUTClinicManagement.Models.Patient", "Patient")
                         .WithMany()
@@ -1235,8 +1229,6 @@ namespace DUTClinicManagement.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("ModifiedBy");
-
-                    b.Navigation("Nurse");
 
                     b.Navigation("Patient");
 

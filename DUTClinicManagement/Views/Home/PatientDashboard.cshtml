@@ -27,7 +27,7 @@
 
 
     .card-title {
-    color: #022D36;
+    color: #010123;
     font-size: 35px;
     }
 
@@ -42,17 +42,18 @@
     }
 
     .btn-primary {
-    background-color: #B0E0FC;
-    color: #022D36;
+    background-color: #010123;
+    color: #ffff;
     transition: background-color 0.3s ease;
     }
 
     .btn-primary:hover {
-    background-color: #48AAAD;
+    background-color: #ffff;
+    color:#010123;
     }
 
     .btn-book {
-    background-color: #48AAAD;
+    background-color: #010123;
     color: white;
     transition: background-color 0.3s ease;
     font-weight: 500;
@@ -60,13 +61,13 @@
     }
 
     .btn-book:hover {
-    background-color: #022D36;
-    color: white;
+    background-color: #ffff;
+    color: #010123;
     }
 
     .styled-button {
-    background-color: #ffffff;
-    color: #022D36;
+    background-color: #010123;
+    color: #ffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -127,22 +128,35 @@
 }
 
 <div class="container">
+<div class="row align-items-center mb-4">
+    <div class="col-6">
+        <h3>Hello @ViewBag.LoggedInUser</h3>
+    </div>
+    <div class="col-6 d-flex justify-content-end">
+        <button style="background-color: #FFA500; color: white; border: 2px solid white; border-radius: 25px; padding: 10px 20px; display: flex; align-items: center; font-weight: 500;">
+            <span style="color: white;">2</span>&nbsp;
+            <i class="fa fa-bell" style="margin-left: 8px;"></i>&nbsp;Reminder(s)
+        </button>
+    </div>
+</div>
+
     <div class="row g-0 flex-column flex-lg-row" style="border-radius: 10px; overflow: hidden;">
 
-        <!-- Image Section -->
         <div class="col-12 col-lg-4" style="padding: 5px;">
             <img src="~/Images/dut_nurses.jpg" alt="Medical Attention"
                  class="img-fluid w-100"
                  style="height: 100%; object-fit: contain; border-radius: 10px;" />
         </div>
 
-        <!-- Text Section -->
         <div class="col-12 col-lg-8 d-flex" style="padding: 5px;">
             <div class="card-body d-flex flex-column w-100" style="border-radius: 10px;">
                 <h3 class="card-title">Do you feel like you need any medical attention?</h3>
-                <p class="card-text">Your appointments are listed here</p>
+<p class="card-text">
+    Our team is committed to providing quality care and will notify you of any changes or important updates regarding your bookings.
+</p>
+
                 <h1 class="card-text text-center center-number">@ViewBag.SportAdminsCount</h1>
-                <a asp-controller="Appointments" asp-action="NewAppointment"
+                <a asp-controller="Appointments" asp-action="MakeAppointment"
                    class="btn btn-primary mt-auto align-self-end styled-button">
                     <span>Book Appointment</span>
                     <span class="arrow">&#10148;</span>

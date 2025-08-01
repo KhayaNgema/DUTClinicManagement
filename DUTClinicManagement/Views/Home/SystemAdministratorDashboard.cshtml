@@ -4,208 +4,192 @@
 }
 
 <style>
-    .card {
-        border: none;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        background: white;
-        width: 100%;
-        height: 30vh; 
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1); /* 3D shadow effect */
+    body {
+        background-color: #f1f4f9;
     }
 
+    .dashboard-heading {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #010123;
+        margin-bottom: 2rem;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-icon {
+        font-size: 2.5rem;
+        color: #010123;
+        margin-bottom: 1rem;
+    }
 
     .card-title {
-        color: #022D36;
-        font-size: 20px; 
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #010123;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .card-text {
-        color: #022D36;
+        color: #4a4a4a;
+        margin-bottom: 1rem;
+        flex-grow: 1;
     }
 
-    .btn-primary {
-        background-color: #B0E0FC;
-        color: #022D36;
-        transition: background-color 0.3s ease;
-    }
-
-        .btn-primary:hover {
-            background-color: #48AAAD;
-        }
-
-    .styled-button {
-        background-color: #ffffff;
-        color: #022D36;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
+    .dashboard-link {
+        background-color: #010123;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 10px;
         text-decoration: none;
-    }
-
-        .styled-button span.arrow {
-            margin-left: 10px;
-        }
-
-    .center-number {
-        display: flex;
+        font-weight: 500;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        height: 30%;
-        margin: 0;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        transition: background 0.3s ease;
+        margin-top: auto;
     }
 
-    h2 {
-        color: #D4D4D4;
+    .dashboard-link:hover {
+        background-color: #01424e;
+        text-decoration: none;
     }
 </style>
 
-<br />
-
-    <h2>
-        <div style="display: flex; align-items: center;">
-            <div style="display: flex; flex-direction: column; align-items: flex-start; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                <h2 style="margin: 0;">Good day @ViewBag.LoggedInUser !</h2>
-            </div>
-        </div>
-    </h2>
-    <br />
-
 <div class="container">
-    <div class="row">
-        <div class="col-sm-12 col-md-6 col-lg-6">
-            <div class="card sport-administrators-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-calendar-check"></i> Appointments</h5>
-                    <p class="card-text">Patients appointments are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.SportAdminsCount</h1>
-                    <a asp-controller="Appointments" asp-action="Appointments" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Appointments</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
+    <br />
+    <h2 class="dashboard-heading">Welcome, @ViewBag.LoggedInUser 👋</h2>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-6">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-check"></i>
                 </div>
+                <div class="card-title">Appointments</div>
+                <div class="card-text">Patients appointments are listed here</div>
+                <div class="stat-number">@ViewBag.SportAdminsCount</div>
+                <a asp-controller="Appointments" asp-action="Appointments" class="dashboard-link">
+                    View Appointments <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
-        <div class="col-sm-12 col-md-12 col-lg-6">
-            <div class="card sport-coordinators-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-sign-in-alt"></i> Admissions</h5>
-                    <p class="card-text">Patients admissions are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.SportCoordinatorsCount</h1>
-                    <a asp-controller="Admissions" asp-action="Admissions" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Admissions</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
+        <div class="col-md-6 col-lg-6">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-user-md"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-12 col-md-6 col-lg-4">
-            <div class="card officials-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-shopping-cart"></i> Orders</h5>
-                    <p class="card-text">Patients meals orders are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.OfficialsCount</h1>
-                    <a asp-controller="Orders" asp-action="Orders" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Orders</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
-                </div>
+                <div class="card-title">Receptionists</div>
+                <div class="card-text">Our receptionists are listed here</div>
+                <div class="stat-number">@ViewBag.DivisionPlayersCount</div>
+                <a asp-controller="Users" asp-action="Receptionists" class="dashboard-link">
+                    View Receptionists <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
-        <div class="col-sm-12 col-md-6 col-lg-4">
-            <div class="card club-managers-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-user-md"></i> Pharmacists</h5>
-                    <p class="card-text">Our pharmacists are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.ClubManagersCount</h1>
-                    <a asp-controller="Users" asp-action="Pharmacists" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Pharmacists</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-user-md"></i>
                 </div>
+                <div class="card-title">Nurses</div>
+                <div class="card-text">Nurses are listed here</div>
+                <div class="stat-number">@ViewBag.OfficialsCount</div>
+                <a asp-controller="Users" asp-action="Nurses" class="dashboard-link">
+                    View Nurses <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
-        <div class="col-sm-12 col-md-6 col-lg-4">
-            <div class="card club-managers-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-user-injured"></i> Patients</h5>
-                    <p class="card-text">Our registered patients are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.ClubManagersCount</h1>
-                    <a asp-controller="Users" asp-action="Patients" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Patients</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-user-md"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-12 col-md-6 col-lg-6">
-            <div class="card division-players-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-user-md"></i> Doctors</h5>
-                    <p class="card-text">Our medical staff members are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.DivisionPlayersCount</h1>
-                    <a asp-controller="Users" asp-action="Doctors" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Doctors</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
-                </div>
+                <div class="card-title">Pharmacists</div>
+                <div class="card-text">Our pharmacists are listed here</div>
+                <div class="stat-number">@ViewBag.ClubManagersCount</div>
+                <a asp-controller="Users" asp-action="Pharmacists" class="dashboard-link">
+                    View Pharmacists <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
-        <div class="col-sm-12 col-md-6 col-lg-6">
-            <div class="card news-administrators-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-utensils"></i> Kitchen Staff</h5>
-                    <p class="card-text">Our kitchen staff members are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.NewsAdminsCount</h1>
-                    <a asp-controller="Users" asp-action="KitchenStaff" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Kitchen Staff</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-user-injured"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-12 col-md-6 col-lg-6">
-            <div class="card division-players-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-user-md"></i> Receptionists</h5>
-                    <p class="card-text">Our receptionists are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.DivisionPlayersCount</h1>
-                    <a asp-controller="Users" asp-action="Receptionists" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Receptionists</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
-                </div>
+                <div class="card-title">Patients</div>
+                <div class="card-text">Our registered patients are listed here</div>
+                <div class="stat-number">@ViewBag.ClubManagersCount</div>
+                <a asp-controller="Users" asp-action="Patients" class="dashboard-link">
+                    View Patients <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
-        <div class="col-sm-12 col-md-6 col-lg-6">
-            <div class="card news-updaters-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title"><i class="fas fa-user-shield"></i> Admins</h5>
-                    <p class="card-text">Our system administrators are listed here</p>
-                    <h1 class="card-text text-center center-number">@ViewBag.NewsUpdatersCount</h1>
-                    <a asp-controller="Users" asp-action="NewsUpdaters" class="btn btn-primary mt-auto align-self-end styled-button">
-                        <span>Admins</span>
-                        <span class="arrow">&#10148;</span>
-                    </a>
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-user-md"></i>
                 </div>
+                <div class="card-title">Doctors</div>
+                <div class="card-text">Our medical staff members are listed here</div>
+                <div class="stat-number">@ViewBag.DivisionPlayersCount</div>
+                <a asp-controller="Users" asp-action="Doctors" class="dashboard-link">
+                    View Doctors <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
+
+<div class="col-md-6 col-lg-4">
+    <div class="glass-card h-100" style="background: rgba(255, 255, 255, 0.2); border-radius: 15px; padding: 20px; backdrop-filter: blur(10px); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);">
+        <div class="card-icon">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="card-title">Delivery personnels</div>
+        <div class="card-text" style="font-size: 0.95rem; color: #333;">Our delivery staff responsible for handling orders and logistics</div>
+        <div class="stat-number" style="font-size: 1.5rem; font-weight: bold;">@ViewBag.NewsUpdatersCount</div>
+        <a asp-controller="Users" asp-action="NewsUpdaters" class="dashboard-link">
+            View Delivery Team <i class="fas fa-arrow-right"></i>
+        </a>
     </div>
 </div>
 
 
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100">
+                <div class="card-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="card-title">Admins</div>
+                <div class="card-text">Our system administrators are listed here</div>
+                <div class="stat-number">@ViewBag.NewsUpdatersCount</div>
+                <a asp-controller="Users" asp-action="NewsUpdaters" class="dashboard-link">
+                    View Admins <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

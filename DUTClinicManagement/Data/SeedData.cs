@@ -23,7 +23,8 @@ public static class SeedData
                 "Doctor", 
                 "Paramedic",
                 "Pharmacist",
-                "Receptionist"
+                "Receptionist",
+                "Nurse"
             };
 
 

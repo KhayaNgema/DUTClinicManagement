@@ -60,11 +60,15 @@ namespace DUTClinicManagement.Models
         [Display(Name = "Doctor's Notes")]
         public string? Notes { get; set; }
 
-        [Required]
-        public string DoctorId { get; set; }
+        public string? DoctorId { get; set; }
 
         [ForeignKey("DoctorId")]
         public virtual Doctor Doctor { get; set; }
+
+        public string? NurseId { get; set; }
+
+        [ForeignKey("NurseId")]
+        public virtual Nurse Nurse { get; set; }
 
         [DisplayName("Until date")]
         public DateTime? UntilDate { get; set; }

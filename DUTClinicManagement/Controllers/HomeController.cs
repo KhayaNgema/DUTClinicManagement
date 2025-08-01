@@ -62,7 +62,7 @@ namespace DUTClinicManagement.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            ViewBag.LoggedInUser = $"{user.FirstName} {user.LastName}";
+            ViewBag.LoggedInUser = $"{user.FirstName}";
 
             if (roles.Contains("System Administrator"))
             {
@@ -80,13 +80,17 @@ namespace DUTClinicManagement.Controllers
 
                 return View("DoctorDashboard");
             }
-            else if (roles.Contains("Delivery Guy"))
+            else if (roles.Contains("Delivery Personnel"))
             {
                 return View("DelveryGuyDashboard");
             }
             else if (roles.Contains("Pharmacist"))
             {
                 return View("PharmacistDashboard");
+            }
+            else if (roles.Contains("Nurse"))
+            {
+                return View("NurseDashboard");
             }
             else if (roles.Contains("Receptionist"))
             {

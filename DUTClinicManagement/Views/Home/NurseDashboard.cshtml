@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Receptionist";
+    ViewData["Title"] = "Nurse";
     Layout = "~/Views/Shared/_PagesLayout.cshtml";
 }
 
@@ -23,8 +23,6 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         transition: transform 0.2s ease;
         height: 100%;
-        display: flex;
-        flex-direction: column;
     }
 
     .glass-card:hover {
@@ -42,15 +40,11 @@
         font-weight: 600;
         color: #010123;
         margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
     }
 
     .card-text {
         color: #4a4a4a;
         margin-bottom: 1rem;
-        flex-grow: 1;
     }
 
     .stat-number {
@@ -71,14 +65,23 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        justify-content: flex-end;
         transition: background 0.3s ease;
-        margin-top: auto;
     }
 
     .dashboard-link:hover {
         background-color: #01424e;
         text-decoration: none;
+    }
+
+    .badge-message-count {
+        background-color: #dc3545;
+        color: white;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 50%;
+        position: absolute;
+        top: -5px;
+        right: -10px;
     }
 
     .card-icon-wrapper {
@@ -87,17 +90,18 @@
 </style>
 
 <div class="container">
-    <br />
+    <br>
     <h2 class="dashboard-heading">Welcome, @ViewBag.LoggedInUser 👋</h2>
 
     <div class="row g-4">
+        <!-- Appointments -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
                     <i class="fas fa-calendar-check card-icon"></i>
                 </div>
                 <div class="card-title">Appointments</div>
-                <div class="card-text">Appointments are listed here</div>
+                <div class="card-text">Appointments scheduled for patients</div>
                 <div class="stat-number">@ViewBag.OfficialsCount</div>
                 <a asp-controller="Appointments" asp-action="Appointments" class="dashboard-link">
                     View Appointments <i class="fas fa-arrow-right"></i>
@@ -105,60 +109,47 @@
             </div>
         </div>
 
+        <!-- Referrals -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
-                    <i class="fas fa-user-injured card-icon"></i>
-                </div>
-                <div class="card-title">Patients</div>
-                <div class="card-text">Our registered patients are listed here</div>
-                <div class="stat-number">@ViewBag.ClubManagersCount</div>
-                <a asp-controller="Users" asp-action="Patients" class="dashboard-link">
-                    View Patients <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mt-2">
-        <div class="col-md-6 col-lg-4">
-            <div class="glass-card h-100">
-                <div class="card-icon-wrapper">
                     <i class="fas fa-user-md card-icon"></i>
                 </div>
-                <div class="card-title">Doctors</div>
-                <div class="card-text">Our medical staff members are listed here</div>
-                <div class="stat-number">@ViewBag.DivisionPlayersCount</div>
-                <a asp-controller="Users" asp-action="Doctors" class="dashboard-link">
-                    View Doctors <i class="fas fa-arrow-right"></i>
+                <div class="card-title">Doctor Referrals</div>
+                <div class="card-text">Referrals issued by the nurse</div>
+                <div class="stat-number">@ViewBag.SportCoordinatorsCount</div>
+                <a asp-controller="Appointments" asp-action="MyXRayRequests" class="dashboard-link">
+                    View Referrals <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
+        <!-- Medical History -->
+        <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
-                    <i class="fas fa-user-md card-icon"></i>
+                    <i class="fas fa-notes-medical card-icon"></i>
                 </div>
-                <div class="card-title">Pharmacists</div>
-                <div class="card-text">Our pharmacists are listed here</div>
-                <div class="stat-number">@ViewBag.ClubManagersCount</div>
-                <a asp-controller="Users" asp-action="Pharmacists" class="dashboard-link">
-                    View Pharmacists <i class="fas fa-arrow-right"></i>
+                <div class="card-title">Medical History</div>
+                <div class="card-text">Patient records and visits</div>
+                <div class="stat-number">@ViewBag.ClubAdminsCount</div>
+                <a asp-controller="MedicalHistories" asp-action="PatientsMedicalHistory" class="dashboard-link">
+                    View History <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
-            <div class="glass-card h-100">
-                <div class="card-icon-wrapper">
-                    <i class="fas fa-utensils card-icon"></i>
+        <!-- Chats -->
+        <div class="col-md-6 col-lg-6">
+            <div class="glass-card h-100 text-center d-flex flex-column justify-content-center align-items-center">
+                <div class="position-relative mb-2">
+                    <i class="fas fa-comments card-icon" style="font-size:40px"></i>
+                    <span class="badge-message-count">4</span>
                 </div>
-                <div class="card-title">Kitchen Staff</div>
-                <div class="card-text">Our kitchen staff members are listed here</div>
-                <div class="stat-number">@ViewBag.NewsAdminsCount</div>
-                <a asp-controller="Users" asp-action="KitchenStaff" class="dashboard-link">
-                    View Kitchen Staff <i class="fas fa-arrow-right"></i>
+                <div class="card-title">Chats</div>
+                <div class="card-text">Follow up with patients & doctors</div>
+                <a asp-controller="Chats" asp-action="Chats" class="dashboard-link mt-2">
+                    Open Chats <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>

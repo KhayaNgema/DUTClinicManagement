@@ -14,26 +14,18 @@
         <h2 class="mb-0 text-white">Medical Histories</h2>
     </div>
 </div>
+
 <div class="container-fluid px-4 text-center" style="margin-top: 10px;">
     <p id="initialInstruction" class="mb-3 fw-semibold" style="font-size: 1.2rem; color: #48AAAD;">
-        Click the camera icon below to scan the Patient's QR code and retrieve their medical history.
+        Use the search bar below to find a patient's medical history by booking reference number.
     </p>
 
     <div id="scanBtn">
-        <span id="openScanner" role="button" style="cursor:pointer; background-color:#48AAAD; padding: 15px; border-radius: 10px;">
-            <i class="bi bi-camera" style="font-size: 3rem; color:white;"></i>
-        </span>
+        <div class="input-group w-50 mx-auto">
+            <input type="text" class="form-control" placeholder="Enter Booking Reference..." id="qrSearchInput" maxlength="13" />
+            <button id="searchBtn" class="btn btn-outline-secondary" type="button">Search</button>
+        </div>
     </div>
-
-    <div id="qr-reader-wrapper" class="mt-4" style="display:none;">
-        <div id="qr-reader" style="width: 100%;"></div>
-        <div class="scanner-line"></div>
-    </div>
-
-    <div id="scannerHint" class="mt-2 fw-semibold" style="color:#48AAAD; font-size: 1.1rem;"></div>
-    <br />
-
-    <input type="hidden" id="qrSearchInput" />
 </div>
 
 @if (!Model.Any())
@@ -67,7 +59,6 @@ else
                     {
                         var encryptedMedicalHistoryId = encryptionService.Encrypt(medicalHistory.PatientMedicalHistoryId);
 
-
                         <tr class="clickable-row ellipsis" data-id="@encryptedMedicalHistoryId" data-access="@(medicalHistory.AccessCode?.ToLower() ?? "n/a")">
                             <td>@($"{medicalHistory.Patient?.FirstName ?? "N/A"} {medicalHistory.Patient?.LastName ?? ""}")</td>
                             <td>@(medicalHistory.Patient?.IdNumber ?? "N/A")</td>
@@ -76,7 +67,7 @@ else
                             <td>@(medicalHistory.Patient?.Address ?? "N/A")</td>
                             <td>@(medicalHistory.CreatedAt.ToString("yyyy-MM-dd HH:mm"))</td>
                             <td>@(medicalHistory.AccessCode ?? "N/A")</td>
-                            @if(User.IsInRole("System Administrator"))
+                            @if (User.IsInRole("System Administrator"))
                             {
                                 <td>
                                     @if (medicalHistory.QrCodeImage != null)
@@ -91,82 +82,55 @@ else
                     }
                 </tbody>
             </table>
-            <div id="noResultsMessage" class="alert alert-info text-center" style="display:none;">
-                No records found.
-            </div>
         </div>
     </div>
+<div id="noResultsMessage" class="text-center mt-5" style="display:none;">
+    <h2 style="color: #888; font-weight: 600;">No medical record found for the entered reference.</h2>
+    <p style="font-size: 1.2rem; color: #bbb;">Please double-check the booking reference number and try again.</p>
+</div>
 
+<div id="retrySearchBtnContainer" class="text-center mt-3" style="display: none;">
+    <button id="retrySearchBtn" class="btn btn-primary">
+        <i class="bi bi-arrow-repeat me-2"></i>Retry Search
+    </button>
+</div>
+<div id="searchAgainContainer" class="text-center mt-4">
+    <button id="searchAgainBtn" class="btn btn-outline-primary">
+        <i class="bi bi-search me-1"></i>Search Again
+    </button>
+</div>
 }
 
-
-<script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-    const openScanner = document.getElementById("openScanner");
-    const wrapper = document.getElementById("qr-reader-wrapper");
-    const qrReader = document.getElementById("qr-reader");
     const tableContainer = document.getElementById("appointmentsTableContainer");
     const qrInput = document.getElementById("qrSearchInput");
-    const scannerHint = document.getElementById("scannerHint");
-    const initialInstruction = document.getElementById("initialInstruction");
     const noResultsMessage = document.getElementById("noResultsMessage");
+    const searchBtn = document.getElementById("searchBtn");
+    const scanBtn = document.getElementById("scanBtn");
+    const retryBtnContainer = document.getElementById("retrySearchBtnContainer");
+    const retryBtn = document.getElementById("retrySearchBtn");
+    const searchAgainBtn = document.getElementById("searchAgainBtn");
+    const searchAgainContainer = document.getElementById("searchAgainContainer");
+    const initialInstruction = document.getElementById("initialInstruction");
 
-    let html5QrCode;
+    let hasSearchedAndFoundResults = false;
 
-    function showScannerHint(message) {
-        scannerHint.textContent = message;
+    function sanitizeInput(input) {
+        return input.replace(/\s/g, '').toLowerCase().slice(0, 13);
     }
 
-    openScanner.addEventListener("click", () => {
-        wrapper.style.display = "block";
-        openScanner.style.display = "none";
-        initialInstruction.style.display = "none";
-        showScannerHint("Please hold the QR code straight in front of the camera");
+    function filterTable(rawQuery) {
+        const query = sanitizeInput(rawQuery);
+        if (!query) {
+            hideAllShowNoResults();
+            return;
+        }
 
-        html5QrCode = new Html5Qrcode("qr-reader");
-
-        Html5Qrcode.getCameras().then(devices => {
-            if (devices && devices.length) {
-                const cameraId = devices[0].id;
-
-                html5QrCode.start(
-                    cameraId,
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    qrCodeMessage => {
-                        qrInput.value = qrCodeMessage.trim().toLowerCase();
-
-                        html5QrCode.stop().then(() => {
-                            wrapper.style.display = "none";
-                            qrReader.innerHTML = "";
-                            scannerHint.textContent = "";
-                            openScanner.style.display = "inline-block";
-                            filterTable(qrInput.value);
-                        });
-                    },
-                    errorMessage => {
-                        if (errorMessage.includes("decode")) {
-                            const hints = [
-                                "Move the QR code closer to the camera",
-                                "Move the QR code farther from the camera",
-                                "Move the QR code to the left",
-                                "Move the QR code to the right",
-                                "Ensure the QR code is fully visible and in good lighting"
-                            ];
-                            const randomHint = hints[Math.floor(Math.random() * hints.length)];
-                            showScannerHint(randomHint);
-                        }
-                    }
-                );
-            }
-        }).catch(err => console.error("Camera access error:", err));
-    });
-
-    function filterTable(query) {
         const rows = document.querySelectorAll("#appointmentsTable tbody tr");
         let anyVisible = false;
 
         rows.forEach(row => {
-            const accessCode = row.getAttribute("data-access");
+            const accessCode = row.getAttribute("data-access") ?? '';
             if (accessCode === query) {
                 row.style.display = "";
                 anyVisible = true;
@@ -175,8 +139,42 @@ else
             }
         });
 
-        noResultsMessage.style.display = anyVisible ? "none" : "block";
+        if (anyVisible) {
+            hasSearchedAndFoundResults = true;
+            showTable();
+        } else {
+            hideAllShowNoResults();
+        }
+    }
+
+    function hideAllShowNoResults() {
+        tableContainer.style.display = "none";
+        noResultsMessage.style.display = "block";
+        retryBtnContainer.style.display = "block";
+        scanBtn.style.display = "none";
+        initialInstruction.style.display = "none";
+        if (searchAgainContainer) searchAgainContainer.style.display = "none";
+    }
+
+    function showSearchUI() {
+        noResultsMessage.style.display = "none";
+        retryBtnContainer.style.display = "none";
+        scanBtn.style.display = "block";
+        initialInstruction.style.display = "block";
+        qrInput.value = "";
+        qrInput.focus();
+    }
+
+    function showTable() {
         tableContainer.style.display = "block";
+        noResultsMessage.style.display = "none";
+        retryBtnContainer.style.display = "none";
+        scanBtn.style.display = "none";
+        initialInstruction.style.display = "none";
+
+        // Show "Search Again" only if a successful search happened
+        if (hasSearchedAndFoundResults && searchAgainContainer)
+            searchAgainContainer.style.display = "block";
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -187,5 +185,35 @@ else
                 window.location.href = `${url}?medicalHistoryId=${encodeURIComponent(encryptedMedicalHistoryId)}`;
             });
         });
+
+        searchBtn.addEventListener("click", () => {
+            filterTable(qrInput.value);
+        });
+
+        qrInput.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                filterTable(qrInput.value);
+            }
+        });
+
+        qrInput.addEventListener("input", function () {
+            this.value = this.value.replace(/\s/g, '').slice(0, 13);
+        });
+
+        retryBtn.addEventListener("click", () => {
+            showSearchUI();
+        });
+
+        if (searchAgainBtn) {
+            searchAgainBtn.addEventListener("click", () => {
+                showSearchUI();
+                tableContainer.style.display = "none";
+                if (searchAgainContainer) searchAgainContainer.style.display = "none";
+            });
+        }
+
+        if (searchAgainContainer)
+            searchAgainContainer.style.display = "none";
     });
 </script>
+

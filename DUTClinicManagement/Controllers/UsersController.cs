@@ -30,21 +30,21 @@ namespace DUTClinicManagement.Controllers
         }
 
         [Authorize(Roles = "System Administrator, Receptionist")]
-        public async Task<IActionResult> Nurses()
-        {
-            var nurses = await _context.Doctors
-                .ToListAsync();
-
-            return View(nurses);
-        }
-
-        [Authorize(Roles = "System Administrator, Receptionist")]
         public async Task<IActionResult> Doctors()
         {
             var doctors = await _context.Doctors
                 .ToListAsync();
 
             return View(doctors);
+        }
+
+        [Authorize(Roles = "System Administrator, Receptionist")]
+        public async Task<IActionResult> Nurses()
+        {
+            var nurses = await _context.Nurses
+                .ToListAsync();
+
+            return View(nurses);
         }
 
         [Authorize(Roles = "System Administrator, Receptionist")]

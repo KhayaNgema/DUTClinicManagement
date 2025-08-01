@@ -16,7 +16,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>@ViewData["Title"] - MediConnect</title>
+    <title>@ViewData["Title"] - DUT Clinic</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DUTClinicManagement.styles.css" asp-append-version="true" />
@@ -126,27 +126,26 @@
 @*     <a asp-controller="Reports" asp-action="TestFeedback" class="floating-button">
         <span class="rotate"><i class="fa fa-comment"></i> Share Feedback</span>
     </a> *@
-    <footer class="py-4 pages-footer" style="background-color: #010123; color: white; padding-bottom: 0;margin-top:40px;">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="w-100 mt-4 mb-3">
-                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
-                            About Us
-                        </h5>
-                    </div>
+    <footer class="py-4 pages-footer" style="background-color: #010123; color: white; padding-bottom: 0; margin-top: 40px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="w-100 mt-4 mb-3 p-3" style="border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px;">
+                    <h5 style="color:white;">
+                        About Us
+                    </h5>
                     <p>
                         Learn more about our mission, values, and team. Visit our
                         <a href="@Url.Action("AboutUs", "Home")" class="text-white">About Us</a> page for more details.
                     </p>
                 </div>
+            </div>
 
-                <div class="col-md-3">
-                    <div class="w-100 mt-4 mb-3">
-                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
-                            Quick Links
-                        </h5>
-                    </div>
+            <div class="col-md-3 mb-3">
+                <div class="w-100 mt-4 mb-3 p-3" style="border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px;">
+                    <h5 style="color:white;">
+                        Quick Links
+                    </h5>
                     <ul class="list-unstyled">
                         <li><a asp-controller="Home" asp-action="PrivacyPolicy" class="text-white">Privacy Policy</a></li>
                         <li><a asp-controller="Home" asp-action="TermsAndConditions" class="text-white">Terms & Conditions</a></li>
@@ -154,37 +153,40 @@
                         <li><a href="https://www.facebook.com/groups/1059539181218342/" target="_blank" class="text-white">Support</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
-                    <div class="w-100 mt-4 mb-3">
-                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
-                            Contact Us
-                        </h5>
-                    </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="w-100 mt-4 mb-3 p-3" style="border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px;">
+                    <h5 style="color:white;">
+                        Contact Us
+                    </h5>
                     <p>Have questions? Get in touch with us via email or phone.</p>
                     <p><i class="fa fa-envelope"></i> <a href="mailto:info@mediconnect.org" class="text-white">info@mediconnect.org</a></p>
                     <p><i class="fa fa-phone"></i> +27732871256</p>
                 </div>
-                <div class="col-md-3">
-                    <div class="w-100 mt-4 mb-3">
-                        <h5 class="px-3 py-2" style="color:white; border-left: 3px solid White;">
-                            Join Us
-                        </h5>
-                    </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="w-100 mt-4 mb-3 p-3" style="border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px;">
+                    <h5 style="color:white;">
+                        Join Us
+                    </h5>
                     <p>
                         Do you want to become one of our valued patients? <br />
                         <a asp-area="Identity" asp-page="/Account/Register" class="text-white font-weight-bold">
-                            Click here to join MediConnect!
+                            Click here to join DUT Clinic!
                         </a>
                     </p>
                 </div>
-
-            </div>
-            <hr style="border-color: white; margin: 20px 0;">
-            <div class="text-center mt-3">
-                <p>&copy; @DateTime.Now.Year MediConnect. All rights reserved.</p>
             </div>
         </div>
-    </footer>
+
+        <hr style="border-color: white; margin: 20px 0;">
+        <div class="text-center mt-3">
+            <p>&copy; @DateTime.Now.Year DUT Clinic. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
 </body>
 
 

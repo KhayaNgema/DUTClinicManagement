@@ -5,7 +5,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using Hangfire;
 using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Models;
 using DUTClinicManagement.Services;
@@ -17,24 +16,23 @@ using Microsoft.Extensions.Logging;
 using DUTClinicManagement.Data;
 using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Models;
-using DUTClinicManagement.Services;
+using HospitalManagement.Services;
 
 namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
 {
-    public class ChangePasswordModel : PageModel
+    public class ChangeFirstTimeLoginPasswordModel : PageModel
     {
         private readonly UserManager<UserBaseModel> _userManager;
         private readonly SignInManager<UserBaseModel> _signInManager;
-        private readonly ILogger<ChangePasswordModel> _logger;
+        private readonly ILogger<ChangeFirstTimeLoginPasswordModel> _logger;
         private readonly DUTClinicManagementDbContext _context;
         private readonly EmailService _emailService;
         private readonly IActivityLogger _activityLogger;
 
-
-        public ChangePasswordModel(
+        public ChangeFirstTimeLoginPasswordModel(
             UserManager<UserBaseModel> userManager,
             SignInManager<UserBaseModel> signInManager,
-            ILogger<ChangePasswordModel> logger,
+            ILogger<ChangeFirstTimeLoginPasswordModel> logger,
             DUTClinicManagementDbContext context,
             EmailService emailService,
             IActivityLogger activityLogger)
@@ -75,7 +73,7 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
             /// </summary>
             [Required]
             [DataType(DataType.Password)]
-            [Display(Name = "Old password")]
+            [Display(Name = "Old temporal password")]
             public string OldPassword { get; set; }
 
             /// <summary>
@@ -98,7 +96,7 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
             public string ConfirmPassword { get; set; }
         }
 
-        public async Task<IActionResult> OnGetAsync(string returnUrl = null)
+        public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -112,12 +110,10 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
             {
                 return RedirectToPage("./SetPassword");
             }
-
-            ReturnUrl = returnUrl;
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
@@ -131,7 +127,6 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
             }
 
             var changePasswordResult = await _userManager.ChangePasswordAsync(user, Input.OldPassword, Input.NewPassword);
-
             if (!changePasswordResult.Succeeded)
             {
                 foreach (var error in changePasswordResult.Errors)
@@ -147,21 +142,21 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
 
             string emailBody = $@"
                     Hi {user.FirstName} {user.LastName},<br/><br/>
-                    Your password has been changed successfully  
-                    and now you will be required to use your new password for aunthetication.<br/><br/>
+                    Your temporal password has been changed successfully.  
+                    Please note that it has expired and you will be required to use your new password for aunthetication.<br/><br/>
                     If you did not request this change, please contact our support team immediately.<br/><br>
                     Kind regards,<br/>
-                    Diski360 Support Team
+                    MediConnect Team
             ";
 
-            BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(user.Email, "Password change successful", emailBody, "Diski 360"));
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Temporal Password Changed Successful",
+                emailBody, "MediConnect");
 
-            await _activityLogger.Log($"Changed password", user.Id);
+            await _activityLogger.Log($"Changed temporal password at first time login", user.Id);
 
-            TempData["Message"] = $"You have successfully changed your password";
-
-            return RedirectToAction("PasswordAndSecurity", "Users");
+            return RedirectToPage("/Account/Login");
         }
-
     }
 }
