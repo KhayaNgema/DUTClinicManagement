@@ -13,8 +13,8 @@
 </a>
 
 <div class="container py-3">
-    <div class="card shadow-lg border-0" style="border-left: 6px solid #48AAAD; border-radius: 10px;">
-        <div class="card-header text-white" style="background-color: #48AAAD;">
+    <div class="card shadow-lg border-0" style="border-left: 6px solid #010123; border-radius: 10px;">
+        <div class="card-header text-white" style="background-color: #010123;">
             <h3 class="mb-0">New medical record</h3>
         </div>
         <div class="card-body px-4 py-4">
@@ -23,7 +23,7 @@
                 <input type="hidden" asp-for="PatientId" />
 
                 <div class="w-100 mt-4 mb-3">
-                    <h3 class="px-3 py-2 bg-light" style="color:#48AAAD; border-left: 5px solid #48AAAD;">
+                    <h3 class="px-3 py-2 bg-light" style="color:#010123; border-left: 5px solid #010123;">
                         Patient Information
                     </h3>
                 </div>
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="w-100 mt-4 mb-3">
-                    <h3 class="px-3 py-2 bg-light" style="color:#48AAAD; border-left: 5px solid #48AAAD;">
+                    <h3 class="px-3 py-2 bg-light" style="color:#010123; border-left: 5px solid #010123;">
                         Medical Record Information
                     </h3>
                 </div>
@@ -143,8 +143,8 @@
                                     }
                                 </div>
                             </div>
-
                         </div>
+
                         <div class="row g-4 mb-4">
                             <label class="form-label fw-semibold text-muted">Collection Type</label>
                             <select asp-for="PrescriptionType" class="form-select rounded-3" asp-items="Html.GetEnumSelectList<PrescriptionType>()" id="prescriptionType">
@@ -152,6 +152,7 @@
                             </select>
                             <span asp-validation-for="PrescriptionType" class="text-danger small"></span>
                         </div>
+
                         <div id="recurringFields" class="row g-4 mb-4" style="display: none;">
                             <div class="col-md-2">
                                 <label asp-for="CollectAfterCount" class="form-label fw-semibold text-muted"></label>
@@ -175,6 +176,7 @@
                         </div>
                     </div>
                 }
+
                 <div class="mb-3">
                     <label asp-for="FollowUpInstructions" class="form-label fw-semibold text-muted"></label>
                     <textarea asp-for="FollowUpInstructions" class="form-control" rows="3" placeholder="Enter follow-up instructions separated by commas"></textarea>
@@ -208,7 +210,6 @@
                     <input asp-for="PatientId" type="hidden" />
                     <input asp-for="BookingId" type="hidden" />
                 </div>
-
             </form>
         </div>
     </div>
@@ -244,9 +245,8 @@
             hiddenInputsContainer.innerHTML = '';
 
             selectedMedications.forEach((med, index) => {
-
                 const medPill = document.createElement('span');
-                medPill.style.backgroundColor = '#48AAAD';
+                medPill.style.backgroundColor = '#010123';
                 medPill.style.color = 'white';
                 medPill.style.userSelect = 'none';
                 medPill.style.marginRight = '0.5rem';
@@ -303,24 +303,21 @@
 
         renderMedications();
     });
+
     document.addEventListener('DOMContentLoaded', function () {
-                const select = document.getElementById('prescriptionType');
-                const recurringFields = document.getElementById('recurringFields');
+        const select = document.getElementById('prescriptionType');
+        const recurringFields = document.getElementById('recurringFields');
 
-                function toggleRecurringFields() {
-                    const selectedValue = select.options[select.selectedIndex].text;
-                    if (selectedValue === 'Recurring') {
-                        recurringFields.style.display = 'flex';
-                    } else {
-                        recurringFields.style.display = 'none';
-                    }
-                }
+        function toggleRecurringFields() {
+            const selectedValue = select.options[select.selectedIndex].text;
+            if (selectedValue === 'Recurring') {
+                recurringFields.style.display = 'flex';
+            } else {
+                recurringFields.style.display = 'none';
+            }
+        }
 
-               
-                toggleRecurringFields();
-
-              
-                select.addEventListener('change', toggleRecurringFields);
-            });
+        toggleRecurringFields();
+        select.addEventListener('change', toggleRecurringFields);
+    });
 </script>
-

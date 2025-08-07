@@ -1,0 +1,42 @@
+﻿@model DUTClinicManagement.Models.Rating
+
+@{
+    var propertyName = ViewData["PropertyName"] as string ?? "Rating";
+}
+
+<div class="star-rating-input-container">
+    <div class="star-rating-input">
+        @for (int i = 5; i >= 1; i--)
+        {
+            <input type="radio" id="@($"{propertyName}_{i}")" name="@propertyName" value="@i" @(Model == (DUTClinicManagement.Models.Rating)i ? "checked" : "") />
+            <label for="@($"{propertyName}_{i}")" title="@i stars">&#9733;</label>
+        }
+    </div>
+</div>
+
+<style>
+    .star-rating-input-container {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
+    .star-rating-input {
+        display: inline-block;
+        direction: rtl;
+        font-size: 3rem;
+        unicode-bidi: bidi-override;
+    }
+    .star-rating-input input {
+        display: none;
+    }
+    .star-rating-input label {
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.2s ease-in-out;
+    }
+    .star-rating-input input:checked ~ label,
+    .star-rating-input label:hover,
+    .star-rating-input label:hover ~ label {
+        color: #f39c12;
+    }
+</style>

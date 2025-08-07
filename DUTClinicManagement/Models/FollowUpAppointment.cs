@@ -4,9 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DUTClinicManagement.Models
 {
-    public class X_RayAppointment : Booking
+    public class FollowUpAppointment : Booking
     {
-        public string DoctorId { get; set; }
+        public string? NurseId { get; set; }
+        [ForeignKey("NurseId")]
+        public virtual Nurse Nurse { get; set; }
+
+        public string? DoctorId { get; set; }
         [ForeignKey("DoctorId")]
         public virtual Doctor Doctor { get; set; }
 
@@ -14,18 +18,21 @@ namespace DUTClinicManagement.Models
         [ForeignKey("OriginalBookingId")]
         public virtual Booking Booking { get; set; }
 
-        [DisplayName("Scanner image")]
-        public string? ScannerImage { get; set; }
-
-        [DisplayName("Body parts require scanning")]
-        public BodyParts BodyParts { get; set; }
-
-        public decimal BookingAmount { get; set; }
-
         [Display(Name = "Instructions/Notes")]
         public ICollection<string>? Instructions { get; set; } = new List<string>();
 
         [NotMapped] 
         public string InstructionsInput { get; set; }
+
+        public NextPersonToSee NextPersonToSee { get; set; }
+
+        public Disease Disease { get; set; }
     }
+
+    public enum NextPersonToSee
+    {
+        Doctor,
+        Nurse
+    }
+
 }

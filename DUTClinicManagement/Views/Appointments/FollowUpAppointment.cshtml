@@ -1,0 +1,136 @@
+﻿@using DUTClinicManagement.ViewModels
+@model BookFollowUpAppointmentViewModel
+@inject DUTClinicManagement.Interfaces.IEncryptionService encryptionService
+
+@{
+    ViewData["Title"] = "Follow-up Appointment";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+    var encryptedAppointmentId = encryptionService.Encrypt(Model.BookingId);
+}
+
+<a href="javascript:history.back()" class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4">
+    <i class="bi bi-chevron-left me-1"></i> Back
+</a>
+
+<div class="container my-4 px-3">
+    <div class="card shadow border-0" style="border-left: 6px solid #010123; border-radius: 12px;">
+        <div class="card-header text-white" style="background-color: #010123;">
+            <h4 class="mb-0">Book Follow-up Appointment</h4>
+        </div>
+
+        <div class="card-body p-4">
+            <form asp-action="FollowUpAppointment" asp-controller="Appointments" method="post" enctype="multipart/form-data" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="BookingId" />
+                <input type="hidden" asp-for="PatientId" />
+
+                <section class="mb-4">
+                    <h5 class="section-heading">Patient Information</h5>
+                    <div class="text-center my-3">
+                        <img src="~/@Model.ProfilePicture" class="img-thumbnail rounded-circle" style="width: 120px; height: 120px; object-fit: cover;" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">First Name</label>
+                            <div class="info-box">@Model.FirstName</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Last Name</label>
+                            <div class="info-box">@Model.LastName</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Date of Birth</label>
+                            <div class="info-box">@Model.DateOfBirth?.ToString("yyyy-MM-dd")</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Gender</label>
+                            <div class="info-box">@Model.Gender</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <h5 class="section-heading">Appointment Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Next Person to See</label>
+                            <select asp-for="NextPersonToSee" class="form-select form-select-lg rounded-3"
+                                    asp-items="Html.GetEnumSelectList<NextPersonToSee>()">
+                                <option value="">-- Select next person --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Disease Type</label>
+                            <select id="Disease" name="Disease" class="form-select form-select-lg rounded-3"
+                                    asp-items="ViewBag.Diseases">
+                                <option value="">-- Select disease --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Appointment Date</label>
+                            <input asp-for="BookForDate" class="form-control form-control-lg rounded-3" type="date" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Time Slot</label>
+                            <select asp-for="BookForTimeSlot" class="form-select form-select-lg rounded-3" asp-items="Model.AvailableTimeSlots">
+                                <option value="">-- Select Time Slot --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="InstructionsInput" class="form-label fw-semibold text-muted"></label>
+                            <textarea asp-for="InstructionsInput" class="form-control" rows="6"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn text-white" style="background-color: #010123; border-color: #010123; padding: 0.75rem 1.5rem; font-size: 1.25rem;">
+                        <i class="bi bi-calendar-plus me-2"></i> Book Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const personSelect = document.getElementById("NextPersonToSee");
+        const dateInput = document.getElementById("BookForDate");
+        const timeSlotSelect = document.getElementById("BookForTimeSlot");
+
+        function loadTimeSlots() {
+            const date = dateInput.value;
+            const nextPerson = personSelect.value;
+
+            if (!date || !nextPerson) return;
+
+            fetch(`/Appointments/GetFollowUpAvailableTimeSlots?date=${date}&nextPersonToSee=${nextPerson}`)
+                .then(res => res.json())
+                .then(data => {
+                    timeSlotSelect.innerHTML = "";
+                    data.forEach(slot => {
+                        const opt = document.createElement("option");
+                        opt.value = slot.value;
+                        opt.text = slot.text;
+                        timeSlotSelect.appendChild(opt);
+                    });
+                });
+        }
+
+        personSelect.addEventListener("change", loadTimeSlots);
+        dateInput.addEventListener("change", loadTimeSlots);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('BookForDate').addEventListener('change', fetchAvailableSlots);
+        fetchAvailableSlots(); 
+    });
+</script>
+

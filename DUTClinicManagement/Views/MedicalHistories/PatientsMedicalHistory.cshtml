@@ -5,18 +5,20 @@
     ViewData["Title"] = "Medical history";
     Layout = "~/Views/Shared/_PagesLayout.cshtml";
 }
-
-<div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4" style="background-color:#48AAAD;">
+<br>
+<div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4" 
+     style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+            border-radius: 0.75rem;">
     <div class="d-flex align-items-center">
         <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
             <i class="bi bi-chevron-left me-1"></i> Back
         </a>
-        <h2 class="mb-0 text-white">Medical Histories</h2>
+         <h2 class="mb-0 text-white">Medical Histories</h2>
     </div>
 </div>
 
 <div class="container-fluid px-4 text-center" style="margin-top: 10px;">
-    <p id="initialInstruction" class="mb-3 fw-semibold" style="font-size: 1.2rem; color: #48AAAD;">
+    <p id="initialInstruction" class="mb-3 fw-semibold" style="font-size: 1.2rem; color: #010123;">
         Use the search bar below to find a patient's medical history by booking reference number.
     </p>
 
@@ -172,7 +174,6 @@ else
         scanBtn.style.display = "none";
         initialInstruction.style.display = "none";
 
-        // Show "Search Again" only if a successful search happened
         if (hasSearchedAndFoundResults && searchAgainContainer)
             searchAgainContainer.style.display = "block";
     }

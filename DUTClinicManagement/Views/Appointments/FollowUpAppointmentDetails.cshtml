@@ -1,0 +1,198 @@
+﻿@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@using DUTClinicManagement.ViewModels
+@model FollowUpAppointmentDetailsViewModel
+@inject DUTClinicManagement.Interfaces.IEncryptionService encryptionService
+
+@functions {
+    public string GetEnumDisplayName(Enum enumValue)
+    {
+        var displayAttr = enumValue.GetType()
+                                   .GetMember(enumValue.ToString())
+                                   .First()
+                                   .GetCustomAttribute<DisplayAttribute>();
+        return displayAttr?.Name ?? enumValue.ToString();
+    }
+}
+
+@{
+    ViewData["Title"] = "Appointment Details";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+    var encryptedAppointmentId = encryptionService.Encrypt(Model.BookingId);
+
+    var statusItems = Enum.GetValues(typeof(BookingStatus))
+        .Cast<BookingStatus>()
+        .Where(s => s != BookingStatus.Pending && s != BookingStatus.Awaiting)
+        .Select(s => new SelectListItem
+        {
+            Text = s.ToString(),
+            Value = ((int)s).ToString()
+        }).ToList();
+}
+
+<a asp-controller="Appointments" asp-action="X_RayAppointments" class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4">
+    <i class="bi bi-chevron-left me-1"></i> Back to Appointments
+</a>
+
+<form asp-controller="Appointments" asp-action="UpdateStatusRedirect" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="appointmentId" value="@Model.BookingId" />
+
+    <div class="container my-4 px-3">
+        <div class="card shadow border-0" style="border-left: 6px solid #010123; border-radius: 12px;">
+            <div class="card-header text-white" style="background-color: #010123;">
+                <h4 class="mb-0">Appointment: ##@Model.BookingReference</h4>
+            </div>
+
+            <div class="card-body p-4">
+
+                @if (TempData["Message"] != null)
+                {
+                    <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+                        @Html.Raw(TempData["Message"])
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <section class="mb-4">
+                    <h5 class="section-heading">Patient Information</h5>
+                    <div class="text-center my-3">
+                        <img src="~/@Model.PatientProfilePicture" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 120px; height: 120px; object-fit: cover;" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Patient</label>
+                            <div class="info-box">@Model.PatientFullNames</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Email</label>
+                            <div class="info-box">@Model.PatientEmail</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">ID Number</label>
+                            <div class="info-box">@Model.IdNumber</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Phone Number</label>
+                            <div class="info-box">@Model.PhoneNumber</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <h5 class="section-heading">Appointment Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Appointment Date</label>
+                            <div class="info-box">@Model.BookForDate.ToString("yyyy/MM/dd")</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Time Slot</label>
+                            <div class="info-box">@Model.BookForTimeSlot</div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="fw-semibold text-muted">Medical Condition</label>
+                            <div class="info-box">@Model.MedicalCondition</div>
+                        </div>
+                    </div>
+                </section>
+
+ 
+                <section class="mb-4">
+                    <h5 class="section-heading">Assigned Staff</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Doctor</label>
+                            <div class="info-box">@Model.DoctorFullNames</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Sent Date</label>
+                            <div class="info-box">@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="fw-semibold text-muted">Radiologist</label>
+                            <div class="info-box">@Model.AssignedToFullNames</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <h5 class="section-heading">Request Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Status" class="fw-semibold text-muted"></label>
+                            <select asp-for="Status" class="form-select form-select-lg rounded-3" asp-items="statusItems">
+                                <option value="">-- Select Status --</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold text-muted">Current Status</label>
+                            <div class="info-box">@GetEnumDisplayName(Model.Status)</div>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label class="fw-semibold text-muted">Additional Notes</label>
+                            <div class="info-box">@Model.AdditionalNotes</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <h5 class="section-heading">Instructions</h5>
+                    <div class="info-box">
+                        @if (Model.Instructions != null && Model.Instructions.Any())
+                        {
+                            <ul class="mb-0 ps-3">
+                                @foreach (var instruction in Model.Instructions)
+                                {
+                                    <li>@instruction</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No instructions available.</span>
+                        }
+                    </div>
+                </section>
+
+                @if (User.IsInRole("System Administrator"))
+                {
+                    <section class="mb-4">
+                        <h5 class="section-heading">Audit Trail</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-semibold text-muted">Last Updated By</label>
+                                <div class="info-box">@Model.DoctorFullNames</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-semibold text-muted">Last Updated At</label>
+                                <div class="info-box">@Model.LastUpdatedAt.ToString("yyyy/MM/dd HH:mm")</div>
+                            </div>
+                        </div>
+                    </section>
+                }
+
+                @if (ViewBag.Specialization == Specialization.Radiologist)
+                {
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn text-white" style="background-color: #010123; border-color: #010123; padding: 0.75rem 1.5rem; font-size: 1.25rem;">
+                            <i class="fa fa-save me-2" style="font-size: 1.5rem;"></i> Save
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script>
+    setTimeout(function () {
+        var msg = document.getElementById("tempDataMessage");
+        if (msg) msg.style.display = "none";
+    }, 7000);
+</script>

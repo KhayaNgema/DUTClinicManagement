@@ -1,0 +1,149 @@
+﻿@model DUTClinicManagement.ViewModels.FeedbackFormViewModel
+
+@{
+    ViewData["Title"] = "Submit Feedback";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+    var doctors = ViewBag.Doctors as List<Doctor>;
+    var nurses = ViewBag.Nurses as List<Nurse>;
+}
+
+<style>
+    .card.p-4 {
+        max-width: 700px;
+        margin: auto;
+    }
+    .comments-textarea {
+        width: 100%;
+        min-height: 80px;
+        resize: vertical;
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        border: 1px solid #ced4da;
+    }
+</style>
+
+<div class="container my-3 px-2">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow rounded-4 p-4">
+                <h3 class="text-center mb-4" style="color: #022D36;">Submit Feedback</h3>
+
+                <form asp-action="SubmitFeedback" method="post" id="feedbackForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Your Assistor's Occupation</label>
+                        <select asp-for="Occupation" class="form-select rounded-3" id="occupationSelect">
+                            <option value="">-- Select Occupation --</option>
+                            <option value="Doctor">Doctor</option>
+                            <option value="Nurse">Nurse</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="doctorDropdown">
+                        <label class="form-label fw-semibold">Select Doctor</label>
+                        <select asp-for="SelectedDoctorId" class="form-select rounded-3">
+                            <option value="">-- Select Doctor --</option>
+                            @foreach (var doctor in doctors)
+                            {
+                                <option value="@doctor.Id">@doctor.FirstName @doctor.LastName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="nurseDropdown">
+                        <label class="form-label fw-semibold">Select Nurse</label>
+                        <select asp-for="SelectedNurseId" class="form-select rounded-3">
+                            <option value="">-- Select Nurse --</option>
+                            @foreach (var nurse in nurses)
+                            {
+                                <option value="@nurse.Id">@nurse.FirstName @nurse.LastName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <input type="hidden" id="commentsCombined" name="Comments" />
+
+                    <div id="ratingPages">
+
+                        <div class="rating-page" id="page-1">
+                            <label class="form-label fw-semibold" for="comment1">Comments on Communication</label>
+                            <textarea id="comment1" class="comments-textarea" placeholder="Enter your comments here..."></textarea>
+
+                            <h5 class="mb-3">1. Communication</h5>
+                            @Html.Partial("_RatingStars", Model?.CommunicationRating ?? Rating.NotRated, new ViewDataDictionary(ViewData) { { "PropertyName", "CommunicationRating" } })
+
+                            <button type="button" class="btn btn-primary float-end" onclick="saveCommentsAndShowPage(2)">Next</button>
+                        </div>
+
+                        <div class="rating-page d-none" id="page-2">
+                            <label class="form-label fw-semibold" for="comment2">Comments on Professionalism</label>
+                            <textarea id="comment2" class="comments-textarea" placeholder="Enter your comments here..."></textarea>
+
+                            <h5 class="mb-3">2. Professionalism</h5>
+                            @Html.Partial("_RatingStars", Model?.ProfessionalismRating ?? Rating.NotRated, new ViewDataDictionary(ViewData) { { "PropertyName", "ProfessionalismRating" } })
+
+                            <button type="button" class="btn btn-secondary" onclick="saveCommentsAndShowPage(1)">Back</button>
+                            <button type="button" class="btn btn-primary float-end" onclick="saveCommentsAndShowPage(3)">Next</button>
+                        </div>
+
+                        <div class="rating-page d-none" id="page-3">
+                            <label class="form-label fw-semibold" for="comment3">Comments on Helpfulness</label>
+                            <textarea id="comment3" class="comments-textarea" placeholder="Enter your comments here..."></textarea>
+
+                            <h5 class="mb-3">3. Helpfulness</h5>
+                            @Html.Partial("_RatingStars", Model?.HelpfulnessRating ?? Rating.NotRated, new ViewDataDictionary(ViewData) { { "PropertyName", "HelpfulnessRating" } })
+
+                            <button type="button" class="btn btn-secondary" onclick="saveCommentsAndShowPage(2)">Back</button>
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success">Submit Feedback</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const occupationSelect = document.getElementById("occupationSelect");
+    const doctorDropdown = document.getElementById("doctorDropdown");
+    const nurseDropdown = document.getElementById("nurseDropdown");
+
+    occupationSelect.addEventListener("change", function () {
+        doctorDropdown.classList.add("d-none");
+        nurseDropdown.classList.add("d-none");
+
+        if (this.value === "Doctor") {
+            doctorDropdown.classList.remove("d-none");
+        } else if (this.value === "Nurse") {
+            nurseDropdown.classList.remove("d-none");
+        }
+    });
+
+    function showPage(pageNumber) {
+        document.querySelectorAll(".rating-page").forEach(p => p.classList.add("d-none"));
+        document.getElementById("page-" + pageNumber).classList.remove("d-none");
+    }
+
+    function saveCommentsAndShowPage(nextPage) {
+        const c1 = document.getElementById("comment1").value.trim();
+        const c2 = document.getElementById("comment2").value.trim();
+        const c3 = document.getElementById("comment3").value.trim();
+
+        let combined = "";
+        if (c1) combined += "Communication: " + c1 + "\n\n";
+        if (c2) combined += "Professionalism: " + c2 + "\n\n";
+        if (c3) combined += "Helpfulness: " + c3;
+
+        document.getElementById("commentsCombined").value = combined;
+
+        showPage(nextPage);
+    }
+
+    occupationSelect.dispatchEvent(new Event('change'));
+</script>
+}

@@ -1,0 +1,32 @@
+﻿@model DUTClinicManagement.Models.Rating
+
+@{
+    int ratingValue = (int)Model;
+}
+
+<span class="readonly-stars" aria-label="Rating: @ratingValue out of 5 stars">
+    @for (int i = 1; i <= 5; i++)
+    {
+        if (i <= ratingValue)
+        {
+            <span class="star filled">&#9733;</span>
+        }
+        else
+        {
+            <span class="star empty">&#9733;</span>
+        }
+    }
+</span>
+
+<style>
+    .readonly-stars {
+        font-size: 1.5rem;
+        color: #ccc;
+        user-select: none;
+    }
+    .readonly-stars .filled {
+        color: #f39c12; 
+    .readonly-stars .empty {
+        color: #ccc; 
+    }
+</style>

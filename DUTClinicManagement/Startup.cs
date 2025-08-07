@@ -121,6 +121,12 @@ public class Startup
         services.AddScoped<FileUploadService>();
         services.AddScoped<RandomPasswordGeneratorService>();
         services.AddScoped<EmailService>();
+        services.AddScoped<FeedbackService>();
+        services.AddSignalR();
+        services.AddScoped<SmsService>();
+        services.AddScoped<ChatAssignmentService>();
+        services.AddScoped<EmergencyPriorityService>();
+        services.AddScoped<ReminderService>();
         services.AddScoped<IActivityLogger, ActivityLogger>();
         services.AddHttpClient<DeviceInfoService>();
         services.AddHttpClient();
@@ -214,20 +220,10 @@ public class Startup
 
         app.UseSerilogRequestLogging();
 
-        /*RecurringJob.AddOrUpdate<FixtureService>(
-            "schedule-fixtures",
-            service => service.ScheduleFixturesAsync(),
-            Cron.Weekly(DayOfWeek.Monday, 0, 0));
-
-        RecurringJob.AddOrUpdate<SubscriptionCheckerService>(
-          "check-expired-subscriptions",
-          service => service.CheckExpiredSubscriptions(),
-          Cron.Minutely);
-
-        RecurringJob.AddOrUpdate<CompetitionService>(
-            "end-monthly-competition",
-            service => service.EndCurrentCompetitionAndStartNewOne(),
-            "59 23 L * *");*/
+        RecurringJob.AddOrUpdate<ReminderService>(
+            "send-reminders",
+            service => service.SendRemindersAsync(),
+            Cron.Minutely);
 
 
         app.UseEndpoints(endpoints =>
@@ -244,7 +240,7 @@ public class Startup
             */
             endpoints.MapRazorPages();
 
-            /*endpoints.MapHub<MatchHub>("/matchHub");*/
+            endpoints.MapHub<ChatHub>("/chathub");
         });
 
 

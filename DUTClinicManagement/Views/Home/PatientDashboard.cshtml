@@ -132,12 +132,34 @@
     <div class="col-6">
         <h3>Hello @ViewBag.LoggedInUser</h3>
     </div>
-    <div class="col-6 d-flex justify-content-end">
-        <button style="background-color: #FFA500; color: white; border: 2px solid white; border-radius: 25px; padding: 10px 20px; display: flex; align-items: center; font-weight: 500;">
-            <span style="color: white;">2</span>&nbsp;
-            <i class="fa fa-bell" style="margin-left: 8px;"></i>&nbsp;Reminder(s)
-        </button>
-    </div>
+<div class="col-6 d-flex justify-content-end align-items-center gap-3">
+
+    <a asp-controller="Reminders" asp-action="Reminders"
+       class="btn btn-warning position-relative d-flex align-items-center"
+       style="border-radius: 25px; padding: 10px 16px; font-weight: 500;">
+        
+        <i class="fa fa-bell" style="font-size: 20px;"></i>
+        <span class="d-none d-md-inline ms-2">Reminders</span>
+
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            @* @ViewBag.ReminderCount *@2
+        </span>
+    </a>
+
+    <a asp-controller="Chats" asp-action="Chats"
+       class="btn btn-info position-relative d-flex align-items-center"
+       style="border-radius: 25px; padding: 10px 16px; font-weight: 500;">
+        
+        <i class="fa fa-comments" style="font-size: 20px;"></i>
+        <span class="d-none d-md-inline ms-2">Chats</span>
+
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            @* @ViewBag.UnreadMessagesCount *@3
+        </span>
+    </a>
+
+</div>
+
 </div>
 
     <div class="row g-0 flex-column flex-lg-row" style="border-radius: 10px; overflow: hidden;">
@@ -167,9 +189,94 @@
     </div>
 </div>
 
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" 
+       style="width: 90%; max-width: 50%; height: 70vh; margin: auto;">
+       
+    <div class="modal-content" style="height: 100%;">
+      <div class="modal-body" id="feedbackModalBody" style="height: 100%; overflow-y: auto;">
+        
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
 <script>
+
     setTimeout(function () {
-        document.getElementById("tempDataMessage").style.display = "none";
+        var msg = document.getElementById("tempDataMessage");
+        if (msg) {
+            msg.style.display = "none";
+        }
     }, 7000);
 </script>
+
+@if ((bool)(ViewBag.HasPendingFeedback ?? false))
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                console.log("Fetching feedback form...");
+                fetch("/Feedbacks/LoadFeedbackForm")
+                    .then(response => {
+                        console.log("Response status:", response.status);
+                        if (response.status === 204) {
+                            console.log("No content to load");
+                            return null;
+                        }
+                        if (!response.ok) throw new Error("Failed to load feedback.");
+                        return response.text();
+                    })
+                    .then(html => {
+                        if (!html) return;
+                        console.log("Feedback form HTML loaded, injecting...");
+                        document.getElementById("feedbackModalBody").innerHTML = html;
+                        const modal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+                        modal.show();
+
+                        showPage(1);
+                    })
+                    .catch(err => {
+                        console.error("Error loading feedback modal:", err);
+                    });
+            }, 3000);
+
+            const feedbackForm = document.getElementById("feedbackForm");
+            if (feedbackForm) {
+                feedbackForm.addEventListener("submit", function (e) {
+                    const c1 = document.getElementById("comment1")?.value.trim() ?? "";
+                    const c2 = document.getElementById("comment2")?.value.trim() ?? "";
+                    const c3 = document.getElementById("comment3")?.value.trim() ?? "";
+
+                    let combined = "";
+                    if (c1) combined += "Communication: " + c1 + "\n\n";
+                    if (c2) combined += "Professionalism: " + c2 + "\n\n";
+                    if (c3) combined += "Helpfulness: " + c3;
+
+                    document.getElementById("commentsCombined").value = combined;
+                });
+            }
+        });
+
+        function showPage(pageNumber) {
+            document.querySelectorAll(".rating-page").forEach(p => p.classList.add("d-none"));
+            document.getElementById("page-" + pageNumber).classList.remove("d-none");
+        }
+
+        function saveCommentsAndShowPage(nextPage) {
+            const c1 = document.getElementById("comment1").value.trim();
+            const c2 = document.getElementById("comment2").value.trim();
+            const c3 = document.getElementById("comment3").value.trim();
+
+            let combined = "";
+            if (c1) combined += "Communication: " + c1 + "\n\n";
+            if (c2) combined += "Professionalism: " + c2 + "\n\n";
+            if (c3) combined += "Helpfulness: " + c3;
+
+            document.getElementById("commentsCombined").value = combined;
+            showPage(nextPage);
+        }
+    </script>
+}

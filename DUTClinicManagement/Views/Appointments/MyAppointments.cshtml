@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<DUTClinicManagement.Models.Booking>
+@using DUTClinicManagement.Models 
 
 @{
     ViewData["Title"] = "Appointments";
@@ -7,49 +8,100 @@
 
 <head>
     <style>
+
         .btn-details,
         .btn-cancel {
-        font-size: 1rem;
-        padding: 4px 10px;
-        border-radius: 20px;
+            font-size: 1rem;
+            padding: 6px 20px;
+            border-radius: 8px;
         }
 
         .btn-details {
-        background-color: #48AAAD;
-        color: white;
-        border: none;
-        margin-right: 6px;
+            background-color: #010123; 
+            color: white;
+            border: none;
+            margin-right: 6px;
         }
 
         .btn-details:hover {
-        background-color: #3c979a;
+            background-color: #580a9e;
         }
 
         .btn-cancel {
-        background-color: transparent;
-        border: 1px solid #ff4d4d;
-        color: #ff4d4d;
+            background-color: transparent;
+            border: 1px solid #ff4d4d; 
+            color: #ff4d4d;
         }
 
         .btn-cancel:hover {
-        background-color: #ff4d4d;
-        color: white;
+            background-color: #ff4d4d;
+            color: white;
         }
 
         .filter-btn.active {
-        background-color: #022D36;
-        color: white;
+            background-color: #022D36;
+            color: white;
+        }
+
+        .appointment-card {
+            border: 3px solid;
+            border-radius: 15px;
+            border-image-slice: 1;
+            border-image-source: linear-gradient(135deg, #6a0dad, #8B0000, #33001c);
+            background-color: white;
+            padding: 1rem;
+            box-sizing: border-box;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+
+        .filter-btn i {
+            color: #8B0000 !important;
+        }
+
+        .appointment-header {
+            font-weight: 600;
+            color: #33001c;
+        }
+
+        .badge-status {
+            background-color: #8B0000;
+            color: white;
+            padding: 0.25em 0.5em;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .modal-header.modal-header-cancel {
+            background-color: #ff4d4d;
+            color: white;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+
+        .modal-header.modal-header-custom {
+            background-color: #010123;
+            color: white;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
         }
     </style>
 </head>
 
+<br />
+
 <div class="container-fluid">
-    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4" style="background-color:#48AAAD;">
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4" 
+         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+                border-radius: 0.75rem;">
         <div class="d-flex align-items-center">
             <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
                 <i class="bi bi-chevron-left me-1"></i> Back
             </a>
-            <h2 class="mb-0 text-white">My appointments</h2>
+            <h2 class="mb-0 text-white">My Appointments</h2>
         </div>
         <div>
             <button class="btn btn-light btn-sm me-2 filter-btn active" data-filter="Assigned">
@@ -57,23 +109,36 @@
             </button>
 
             <button class="btn btn-light btn-sm me-2 filter-btn" data-filter="Completed">
-                <i class="bi bi-check-circle" style="color:green;"></i> <span class="btn-text ms-1">Completed</span>
+                <i class="bi bi-check-circle" style="color:#8B0000;"></i> <span class="btn-text ms-1">Completed</span>
             </button>
         </div>
     </div>
-
 
     <div class="d-flex justify-content-end align-items-center mb-4 px-3">
         <a href="@Url.Action("MakeAppointment", "Appointments")" class="btn btn-primary" id="addButton">
             <i class="bi bi-plus-circle me-1"></i> New Appointment
         </a>
     </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+            @Html.Raw(TempData["Message"])
+            <span class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </span>
+        </div>
+    }
+
     <div class="alert alert-info text-center" id="noDataAlert" style="display:none;">
         You have no appointments matching the selected filter.
     </div>
 
     @if (!Model.Any())
     {
+        <div class="alert alert-info text-center">
+            You have no appointments.
+        </div>
     }
     else
     {
@@ -89,9 +154,13 @@
                             <h5 class="appointment-header mb-3">@booking.MedicalCondition</h5>
                             <p class="mb-1"><strong>Date:</strong> @booking.BookForDate.ToString("MMMM dd, yyyy")</p>
                             <p class="mb-1"><strong>Time:</strong> @booking.BookForTimeSlot</p>
-                            <p class="mb-1"><strong>Status:</strong> <span class="badge badge-status">@booking.Status</span></p>
                             <p class="mb-1">
-                                <strong>Doctor:</strong>
+                                <strong>Status:</strong> 
+                                <span class="badge badge-status">@booking.Status</span>
+                            </p>
+
+                            <dt class="col-sm-4 text-start">Doctor</dt>
+                            <dd class="col-sm-8 text-start">
                                 @if (booking.AssignedTo != null)
                                 {
                                     @($"{booking.AssignedTo.FirstName} {booking.AssignedTo.LastName}")
@@ -100,8 +169,7 @@
                                 {
                                     <span class="text-muted">Not Assigned</span>
                                 }
-                            </p>
-
+                            </dd>
                         </div>
                         <div class="card-actions d-flex justify-content-end">
                             @if (booking.Status == BookingStatus.Completed)
@@ -114,9 +182,7 @@
                                 <button class="btn btn-cancel" data-bs-toggle="modal" data-bs-target="#@cancelModalId">Cancel</button>
                             }
                         </div>
-
                     </div>
-
 
                     <div class="modal fade" id="@cancelModalId" tabindex="-1" aria-labelledby="@($"{cancelModalId}_Label")" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
@@ -134,7 +200,7 @@
                                         <dd class="col-sm-8">@booking.BookForDate.ToString("MMMM dd, yyyy")</dd>
 
                                         <dt class="col-sm-4">Time</dt>
-                                        <dd class="col-sm-8">@booking.BookForTimeSlot)</dd>
+                                        <dd class="col-sm-8">@booking.BookForTimeSlot</dd>
 
                                         <dt class="col-sm-4">Status</dt>
                                         <dd class="col-sm-8">@booking.Status</dd>
@@ -143,17 +209,6 @@
                                         <dd class="col-sm-8">@booking.AdditionalNotes</dd>
                                     </dl>
                                 </div>
-                                @if (booking.Status != BookingStatus.Completed)
-                                {
-                                    <div class="modal-footer justify-content-center">
-                                        <form asp-controller="Appointments" asp-action="CancelBooking" method="post">
-                                            <input type="hidden" name="id" value="@booking.BookingId" />
-                                            <button type="submit" class="btn btn-danger px-4">Yes, Cancel</button>
-                                        </form>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                                    </div>
-                                }
-
                             </div>
                         </div>
                     </div>
@@ -166,17 +221,6 @@
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body d-flex flex-column align-items-center">
-
-                                    @if (booking.QrCodeImage != null)
-                                    {
-                                        <div class="qr-code-wrapper mb-4 text-center">
-                                            <div class="d-inline-block border rounded p-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
-                                                <img src="data:image/png;base64,@Convert.ToBase64String(booking.QrCodeImage)" alt="QR Code" style="width:200px; height:200px;" />
-                                                <label class="fw-semibold text-muted d-block mt-2 text-center">QR Code</label>
-                                            </div>
-                                        </div>
-                                    }
-
                                     <dl class="details-list row">
                                         <dt class="col-sm-4 text-start">Medical Condition</dt>
                                         <dd class="col-sm-8 text-start">@booking.MedicalCondition</dd>
@@ -191,21 +235,27 @@
                                         <dd class="col-sm-8 text-start">@booking.Status</dd>
 
                                         <dt class="col-sm-4 text-start">Doctor</dt>
-                                        <dd class="col-sm-8 text-start">@booking.AssignedTo.FirstName @booking.AssignedTo.LastName</dd>
+                                        <dd class="col-sm-8 text-start">
+                                            @if (booking.AssignedTo != null)
+                                            {
+                                                @($"{booking.AssignedTo.FirstName} {booking.AssignedTo.LastName}")
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not Assigned</span>
+                                            }
+                                        </dd>
 
                                         <dt class="col-sm-4 text-start">Notes</dt>
                                         <dd class="col-sm-8 text-start">@booking.AdditionalNotes</dd>
                                     </dl>
-
                                 </div>
                                 @if (booking.Status != BookingStatus.Completed)
                                 {
                                     <div class="modal-footer">
-                                    <a class="btn btn-outline-primary" asp-controller="Appointments" asp-action="RescheduleAppointment" asp-route-id="@booking.BookingId">Reschedule</a>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     </div>
                                 }
-
                             </div>
                         </div>
                     </div>
@@ -259,6 +309,9 @@
                 });
             });
         });
+
+        setTimeout(function () {
+            document.getElementById("tempDataMessage").style.display = "none";
+        }, 7000);
     </script>
 }
-

@@ -12,21 +12,19 @@
     <i class="bi bi-chevron-left me-1"></i>Medical History
 </a>
 
-
 <div class="container py-3">
-    <div class="card shadow-lg border-0" style="border-left: 6px solid #48AAAD; border-radius: 10px;">
-        <div class="card-header text-white" style="background-color: #48AAAD;">
+    <div class="card shadow-lg border-0" style="border-left: 6px solid #010123; border-radius: 10px;">
+        <div class="card-header text-white" style="background-color: #010123;">
             <h3 class="mb-0">Medical record</h3>
         </div>
         <div class="card-body px-4 py-4">
-
 
             <input type="hidden" asp-for="PatientId" />
             <input type="hidden" asp-for="PatientMedicalHistoryId" />
             <input type="hidden" asp-for="BookingId" />
 
             <div class="w-100 mt-4 mb-3">
-                <h3 class="px-3 py-2 bg-light" style="color:#48AAAD; border-left: 5px solid #48AAAD;">
+                <h3 class="px-3 py-2 bg-light" style="color:#010123; border-left: 5px solid #010123;">
                     Patient Information
                 </h3>
             </div>
@@ -37,13 +35,13 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="fw-semibold text-muted">First Name</label>
-                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                         @Model.FirstName
                     </div>
                 </div>
                 <div class="col-md-6">
                     <label class="fw-semibold text-muted">Last Name</label>
-                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                         @Model.LastName
                     </div>
                 </div>
@@ -52,27 +50,28 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="fw-semibold text-muted">Date Of Birth</label>
-                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                         @Model.DateOfBirth?.ToString("yyyy/MM/dd")
                     </div>
                 </div>
             </div>
 
             <div class="w-100 mt-4 mb-3">
-                <h3 class="px-3 py-2 bg-light" style="color:#48AAAD; border-left: 5px solid #48AAAD;">
+                <h3 class="px-3 py-2 bg-light" style="color:#010123; border-left: 5px solid #010123;">
                     Medical Record Information
                 </h3>
             </div>
+
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Chief Complaint</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     @Model.ChiefComplaint
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Symptoms</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     <ul class="mb-0">
                         @foreach (var symptom in Model.Symptoms)
                         {
@@ -82,17 +81,16 @@
                 </div>
             </div>
 
-
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Diagnosis</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     @Model.Diagnosis
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Surgeries</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     <ul class="mb-0">
                         @foreach (var surgery in Model.Surgeries)
                         {
@@ -102,10 +100,9 @@
                 </div>
             </div>
 
-
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Immunizations</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     <ul class="mb-0">
                         @foreach (var immunization in Model.Immunizations)
                         {
@@ -115,17 +112,16 @@
                 </div>
             </div>
 
-
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="fw-semibold text-muted">Height (cm)</label>
-                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                         @Model.HeightCm
                     </div>
                 </div>
                 <div class="col-md-6">
                     <label class="fw-semibold text-muted">Weight (kg)</label>
-                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                         @Model.WeightKg
                     </div>
                 </div>
@@ -133,7 +129,7 @@
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Treatment</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     @Model.Treatment
                 </div>
             </div>
@@ -144,7 +140,7 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <label class="fw-semibold text-muted">Medication to prescribe</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @foreach (var med in prescribedList)
                                 {
                                     <div>@med.MedicationName (D @med.DosageForm - S @med.Strength - U @med.UnitOfMeasure)</div>
@@ -154,7 +150,7 @@
 
                         <div class="col-md-6">
                             <label class="fw-semibold text-muted">Collection Type</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.PrescriptionType
                             </div>
                         </div>
@@ -163,19 +159,19 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-2">
                             <label class="fw-semibold text-muted">Collect After Count</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.CollectAfterCount
                             </div>
                         </div>
                         <div class="col-md-5">
                             <label class="fw-semibold text-muted">Collection Interval</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.CollectionInterval
                             </div>
                         </div>
                         <div class="col-md-5">
                             <label class="fw-semibold text-muted">Until Date</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @(Model.UntilDate?.ToString("yyyy-MM-dd") ?? "")
                             </div>
                         </div>
@@ -185,7 +181,7 @@
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Follow Up Instructions</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     <ul class="mb-0">
                         @foreach (var instruction in Model.FollowUpInstructions)
                         {
@@ -197,21 +193,21 @@
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Vitals</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     @Model.Vitals
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Lab Results</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     @Model.LabResults
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="fw-semibold text-muted">Notes</label>
-                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                     @Model.Notes
                 </div>
             </div>

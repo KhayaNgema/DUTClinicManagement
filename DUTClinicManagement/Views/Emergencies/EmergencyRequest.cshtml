@@ -1,0 +1,67 @@
+﻿@model DUTClinicManagement.ViewModels.EmergencyRequestViewModel
+
+@{
+    ViewData["Title"] = "Emergency Request";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+}
+
+<a asp-controller="Emergencies" asp-action="MyRequests" class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4 text-danger-emphasis">
+    <i class="bi bi-chevron-left me-2 fs-5"></i><span class="fw-semibold">Back</span>
+</a>
+
+@if (TempData["Message"] != null)
+{
+    <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+        @Html.Raw(TempData["Message"])
+        <span class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </span>
+    </div>
+}
+
+<div class="container my-3 px-2">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-lg border-danger border-2 rounded-4 p-4" style="background-color: #FFF5F5;">
+                <div class="d-flex align-items-center mb-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-3 me-2"></i>
+                    <h3 class="text-danger m-0 fw-bold">Emergency Request</h3>
+                </div>
+
+                <form asp-action="EmergencyRequest" method="post" id="appointmentForm">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="RequestLocation" class="form-label fw-semibold text-danger"></label>
+                        <select asp-for="RequestLocation" id="RequestLocation" class="form-select rounded-3 border-danger"
+                                asp-items="Html.GetEnumSelectList<RequestLocation>()">
+                            <option value="">-- Select Location --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EmergencyDetails" class="form-label fw-semibold text-danger"></label>
+                        <textarea asp-for="EmergencyDetails" class="form-control rounded-3 border-danger" style="min-height: 100px;"></textarea>
+                        <span asp-validation-for="EmergencyDetails" class="text-danger small"></span>
+                    </div>
+
+                    <input asp-for="PatientId" type="hidden" />
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-danger btn-lg fw-semibold rounded-pill">
+                            🚨 Submit Emergency Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    setTimeout(function () {
+        const message = document.getElementById("tempDataMessage");
+        if (message) message.style.display = "none";
+    }, 7000);
+</script>

@@ -39,8 +39,8 @@
     <input type="hidden" name="appointmentId" value="@Model.BookingId" />
 
     <div class="container my-3 px-4">
-        <div class="card shadow-lg border-0" style="border-left: 6px solid #48AAAD; border-radius: 10px;">
-            <div class="card-header text-white" style="background-color: #48AAAD;">
+        <div class="card shadow-lg border-0" style="border-left: 6px solid #010123; border-radius: 10px;">
+            <div class="card-header text-white" style="background-color: #010123;">
                 <h3 class="mb-0">##@Model.BookingReference</h3>
             </div>
             <div class="card-body px-4 py-4">
@@ -55,13 +55,13 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="fw-semibold text-muted">Patient</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                             @Model.CreatedBy?.FirstName @Model.CreatedBy?.LastName
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="fw-semibold text-muted">Email</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                             @Model.CreatedBy?.Email
                         </div>
                     </div>
@@ -70,14 +70,14 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="fw-semibold text-muted">Appointment Date</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                             @Model.BookForDate.ToString("yyyy/MM/dd")
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="fw-semibold text-muted">Appointment Time</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
-                            @Model.BookForTimeSlot)
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
+                            @Model.BookForTimeSlot
                         </div>
                     </div>
                 </div>
@@ -85,12 +85,11 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="fw-semibold text-muted">Medical Condition</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                             @Model.MedicalCondition
                         </div>
                     </div>
                 </div>
-
 
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
@@ -102,16 +101,15 @@
                     </div>
                     <div class="col-md-6">
                         <label class="fw-semibold text-muted">Assigned doctor</label>
-                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
-                            @Model.AssignedTo.FirstName @Model.AssignedTo.LastName)
+                        <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
+                            @Model.AssignedTo.FirstName @Model.AssignedTo.LastName
                         </div>
                     </div>
                 </div>
 
-
                 <div class="mb-4">
                     <label class="fw-semibold text-muted">Additional notes</label>
-                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                    <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                         @Model.AdditionalNotes
                     </div>
                 </div>
@@ -121,25 +119,25 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <label class="fw-semibold text-muted">Created By</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.CreatedBy?.FirstName @Model.CreatedBy?.LastName
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="fw-semibold text-muted">Created At</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="fw-semibold text-muted">Last Updated By</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.ModifiedBy?.FirstName @Model.ModifiedBy?.LastName
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="fw-semibold text-muted">Last Updated At</label>
-                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #48AAAD;">
+                            <div class="border rounded py-3 px-3 shadow-sm" style="border-left: 5px solid #010123;">
                                 @Model.LastUpdatedAt.ToString("yyyy/MM/dd HH:mm")
                             </div>
                         </div>
@@ -147,14 +145,11 @@
                 }
 
                 <div class="d-flex justify-content-end mt-5 gap-3">
-                    <a asp-controller="Appointments" asp-action="X_RayAppointment" asp-route-appointmentId="@encryptedAppointmentId" class="btn btn-outline-success btn-lg">
-                        <i class="fas fa-x-ray me-2"></i> X-Ray
-                    </a>
-                    <a asp-controller="Admissions" asp-action="AdmitPatient" asp-route-appointmentId="@encryptedAppointmentId" class="btn btn-outline-success btn-lg">
-                        <i class="fas fa-procedures me-2"></i> Admit
+                    <a asp-controller="Appointments" asp-action="FollowUpAppointment" asp-route-appointmentId="@encryptedAppointmentId" class="btn btn-outline-success btn-lg">
+                        <i class="fas fa-calendar-check me-2"></i> Follow-up
                     </a>
                     <button type="submit" class="btn btn-success px-4 py-2 fs-5">
-                        <i class="fa fa-save me-2" style="font-size: 1.5rem;"></i> Save
+                        <i class="fa fa-save me-2" style="font-size: 1.5rem;"></i> Update
                     </button>
                 </div>
             </div>

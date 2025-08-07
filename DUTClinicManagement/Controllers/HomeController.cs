@@ -1,9 +1,10 @@
-using System.Diagnostics;
 using DUTClinicManagement.Data;
+using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace DUTClinicManagement.Controllers
 {
@@ -12,14 +13,16 @@ namespace DUTClinicManagement.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<UserBaseModel> _userManager;
         private readonly DUTClinicManagementDbContext _context;
-
+        private readonly FeedbackService _feedbackService;
         public HomeController(ILogger<HomeController> logger,
             UserManager<UserBaseModel> userManager,
-            DUTClinicManagementDbContext context)
+            DUTClinicManagementDbContext context,
+            FeedbackService feedbackService)
         {
             _logger = logger;
             _userManager = userManager;
             _context = context;
+            _feedbackService = feedbackService;
         }
 
         public async Task<IActionResult> Index(string tab)
@@ -59,7 +62,6 @@ namespace DUTClinicManagement.Controllers
             }
 
             var user = await _userManager.GetUserAsync(User);
-
             var roles = await _userManager.GetRolesAsync(user);
 
             ViewBag.LoggedInUser = $"{user.FirstName}";
@@ -70,14 +72,8 @@ namespace DUTClinicManagement.Controllers
             }
             else if (roles.Contains("Doctor"))
             {
-                var doctor = await _context.Doctors
-                    .Where(d => d.Id == user.Id)
-                    .FirstOrDefaultAsync();
-
-                var doctorSpecialization = doctor.Specialization;
-
-                ViewBag.Specialization = doctorSpecialization;
-
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Id == user.Id);
+                ViewBag.Specialization = doctor?.Specialization;
                 return View("DoctorDashboard");
             }
             else if (roles.Contains("Delivery Personnel"))
@@ -98,9 +94,13 @@ namespace DUTClinicManagement.Controllers
             }
             else
             {
+                var hasPendingFeedback = await _feedbackService.HasPendingFeedbackAsync(user.Id);
+                ViewBag.HasPendingFeedback = hasPendingFeedback;
+
                 return View("PatientDashboard");
             }
         }
+
 
 
         public IActionResult Privacy()

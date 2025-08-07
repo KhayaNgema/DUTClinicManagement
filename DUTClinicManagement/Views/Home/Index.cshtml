@@ -3,13 +3,64 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<section class="hero-section py-5">
-    <div class="container">
-        <div class="row align-items-center text-center text-md-start">
+<style>
+    .emergency-section {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center; 
+        gap: 1rem;
+        margin: 2rem 0;
+        text-align: center;
+    }
 
+    .emergency-btn {
+        background: linear-gradient(to right, #ff1e1e, #002244);
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 0.6rem 1.4rem;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+        animation: button-flicker 1.2s infinite alternate ease-in-out;
+    }
+
+        .emergency-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            animation-play-state: paused;
+            color: red;
+        }
+
+    .emergency-icon {
+        font-size: 1.8rem;
+        margin-right: 0.5rem;
+        animation: ambulance-flash 0.6s infinite alternate ease-in-out;
+        display: inline-block;
+    }
+</style>
+
+<div class="emergency-section">
+    <h4 class="text-danger fw-bold mb-0" style="font-size: 1.75rem;">
+        CLICK THE RED BUTTON TO REQUEST EMERGENCY ASSISTANCE NOW!
+    </h4>
+
+    <a asp-controller="Emergencies" asp-action="EmergencyRequest" class="btn d-flex align-items-center emergency-btn">
+        <span class="emergency-icon">🚨</span>
+        <span>Emergency</span>
+    </a>
+</div>
+
+
+
+<section class="hero-section py-5">
+    <div class="container-fluid">
+        <div class="row align-items-center text-center text-md-start">
             <div class="col-12 col-md-6 mb-4 mb-md-0 d-flex justify-content-center">
-                <div style="width: 100%; max-width: 500px; height: 500px; overflow: hidden;">
-                    <img src="~/UploadedFiles/hospital_image.jpg"
+                <div style="width: 100%; max-width: 420px; height: 420px; overflow: hidden; border-radius:15px;">
+                    <img src="~/Images/dut_nurses.jpg"
                          class="img-fluid w-100 h-100 object-fit-cover"
                          alt="Hospital Icon" />
                 </div>
@@ -18,28 +69,13 @@
             <div class="col-12 col-md-6">
                 <div class="hero-text-content">
                     <h1 class="app-name">
-                        <span style="color: #022D36;">MEDI</span>
-                        <span style="color: #48AAAD;">CONNECT</span>
+                        <span style="color: Black;">DUT Clinic</span>
                     </h1>
-                    <p class="hero-subtitle">Connecting people from the outside world.</p>
-
-                    <div class="mt-3">
-                        <a href="/Identity/Account/Register" class="btn"
-                           style="background-color: #48AAAD; color: white; border-radius: 25px; padding: 10px 20px; width: 200px; font-size: 1.1rem;">
-                            Register
-                        </a>
-                    </div>
-
-                    <div class="login-url mt-3">
-                        <strong>We are proud of our</strong> strong quality service.
-                    </div>
-
-                    <div class="social-icons mt-3">
-                        <p>Follow <strong>MediConnect</strong></p>
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                    </div>
+                    <p class="hero-subtitle">
+                        The DUT Clinic System is a digital platform designed for students and staff at Durban University of Technology.<br />
+                        It allows users to book appointments, receive reminders, and manage medical visits efficiently.<br /><br />
+                        The system streamlines clinic operations, improves communication, and enhances access to healthcare services on campus.
+                    </p>
                 </div>
             </div>
         </div>
@@ -48,13 +84,4 @@
 
 
 
-<section class="services-section">
-    <div class="container" style="text-align: center;">
-        <h2 class="app-name">
-            <span style="color: #022D36;">Our</span>
-            <span style="color: #48AAAD;"> Services</span>
-        </h2>
-        <p class="section-subtitle">See the list of our services.</p>
-    </div>
-</section>
 

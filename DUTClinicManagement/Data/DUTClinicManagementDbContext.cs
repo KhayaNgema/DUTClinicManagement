@@ -41,7 +41,7 @@ public class DUTClinicManagementDbContext : IdentityDbContext<IdentityUser>
 
     public DbSet<DUTClinicManagement.Models.PatientMedicalHistory> PatientMedicalHistories { get; set; }
 
-    public DbSet<DUTClinicManagement.Models.X_RayAppointment> X_RayAppointments { get; set; }
+    public DbSet<DUTClinicManagement.Models.FollowUpAppointment> FollowUpAppointments { get; set; }
 
     public DbSet<DUTClinicManagement.Models.Pharmacist> Pharmacists { get; set; }
 
@@ -51,8 +51,20 @@ public class DUTClinicManagementDbContext : IdentityDbContext<IdentityUser>
 
     public DbSet<DUTClinicManagement.Models.Room> Rooms { get; set; }
 
+    public DbSet<DUTClinicManagement.Models.Message> Messages { get; set; }
+
+    public DbSet<DUTClinicManagement.Models.Conversation> Conversations { get; set; }
+
+    public DbSet<DUTClinicManagement.Models.Feedback> Feedbacks { get; set; }
+
     public DbSet<DUTClinicManagement.Models.MedicationCategory> MedicationCategories { get; set; }
     public DbSet<DUTClinicManagement.Models.DeliveryPersonnel> DeliveryGuys { get; set; }
 
     public DbSet<DUTClinicManagement.Models.Nurse> Nurses { get; set; }
+
+    public DbSet<DUTClinicManagement.Models.Reminder> Reminders { get; set; }
+
+    public DbSet<DUTClinicManagement.Models.Paramedic> Paramedics { get; set; }
+
+    public DbSet<DUTClinicManagement.Models.EmergencyRequest> EmergencyRequests { get; set; }
 }

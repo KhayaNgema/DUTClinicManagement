@@ -3,6 +3,7 @@ using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Models;
 using DUTClinicManagement.Services;
 using DUTClinicManagement.ViewModels;
+using HospitalManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -49,7 +50,17 @@ namespace HospitalManagement.Controllers
             _activityLogger = activityLogger;
         }
 
+        [Authorize(Roles = "Pharmacist")]
+        [HttpGet]
+        public async Task<IActionResult> Inventory()
+        {
+            var inventory = await _context.MedicationInventory
+                .Include(i => i.Medication)
+                .OrderBy(i => i.Medication.MedicationName)
+                .ToListAsync();
 
+            return View(inventory);
+        }
 
         [HttpGet]
         public async Task<IActionResult> CollectMedication()
@@ -113,7 +124,7 @@ namespace HospitalManagement.Controllers
             return View(medications);
         }
 
-        [Authorize(Roles = "Pharmacist Doctor")]
+        [Authorize(Roles = "Pharmacist, Doctor")]
         [HttpGet]
         public async Task<IActionResult> PescriptionRequest(string medicationPescriptionId)
         {
@@ -222,6 +233,18 @@ namespace HospitalManagement.Controllers
                 _context.Add(menuItem);
                 await _context.SaveChangesAsync();
 
+
+                var newInventory = new MedicationInventory
+                {
+                    MedicationId = menuItem.MedicationId,
+                    Quantity = 0,
+                    StockLevel = StockLevel.Critical,
+                    Availability = MedicationAvailability.OutOfStock
+                };
+
+                _context.Add(newInventory);
+                await _context.SaveChangesAsync();
+
                 TempData["Message"] = $"You have successfully added {viewModel.MedicationName} as your new hospital medication";
 
                 return RedirectToAction(nameof(Medications));
@@ -256,25 +279,68 @@ namespace HospitalManagement.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             var medicationprescriptionRequest = await _context.MedicationPescription
-                .Where(mpr => mpr.MedicationPescriptionId == prescriptionRequestId)
-                .FirstOrDefaultAsync();
+                .Include(mpr => mpr.PrescribedMedication)
+                .FirstOrDefaultAsync(mpr => mpr.MedicationPescriptionId == prescriptionRequestId);
 
-
-            if (medicationprescriptionRequest != null)
+            if (medicationprescriptionRequest == null)
             {
-                medicationprescriptionRequest.Status = status;
-                medicationprescriptionRequest.LastUpdatedAt = DateTime.Now;
-                medicationprescriptionRequest.UpdatedById = user.Id;
-
-                _context.Update(medicationprescriptionRequest);
-                await _context.SaveChangesAsync();
+                TempData["Error"] = "Prescription request not found.";
+                return RedirectToAction(nameof(PescriptionRequest));
             }
 
-            TempData["Message"] = $"You have successfully updated the medication prescription request status to {medicationprescriptionRequest.Status}.";
+            medicationprescriptionRequest.Status = status;
+            medicationprescriptionRequest.LastUpdatedAt = DateTime.Now;
+            medicationprescriptionRequest.UpdatedById = user.Id;
 
-            var encryptedId = _encryptionService.Encrypt(medicationprescriptionRequest.MedicationPescriptionId);
+            _context.Update(medicationprescriptionRequest);
+            await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(PescriptionRequest), new { medicationPescriptionId = encryptedId });
+            if (status == MedicationPescriptionStatus.Collected || status == MedicationPescriptionStatus.Collecting)
+            {
+                foreach (var prescribed in medicationprescriptionRequest.PrescribedMedication)
+                {
+                    var inventory = await _context.MedicationInventory
+                        .Include(i => i.Medication)
+                        .FirstOrDefaultAsync(i => i.Medication.MedicationId == prescribed.MedicationId);
+
+                    if (inventory == null || inventory.Quantity <= 0)
+                        continue;
+
+                    inventory.Quantity--;
+
+                    if (inventory.Quantity <= 5)
+                        inventory.StockLevel = StockLevel.Critical;
+                    else if (inventory.Quantity <= 10)
+                        inventory.StockLevel = StockLevel.Low;
+                    else if (inventory.Quantity <= 25)
+                        inventory.StockLevel = StockLevel.Moderate;
+                    else
+                        inventory.StockLevel = StockLevel.High;
+
+                    if (inventory.Quantity == 0)
+                        inventory.Availability = MedicationAvailability.OutOfStock;
+
+                    _context.Update(inventory);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            var booking = await _context.Bookings
+                .Include(b => b.Patient)
+                .FirstOrDefaultAsync(b => b.BookingId == medicationprescriptionRequest.BookingId);
+
+            if (booking != null)
+            {
+                TempData["Message"] = $"You have successfully updated medication request status.";
+            }
+            else
+            {
+                TempData["Message"] = $"You have successfully updated the medication prescription request status to {medicationprescriptionRequest.Status}.";
+            }
+
+            var encryptedPrescriptionId = _encryptionService.Encrypt(medicationprescriptionRequest.MedicationPescriptionId);
+            return RedirectToAction(nameof(PescriptionRequest), new { medicationPescriptionId = encryptedPrescriptionId });
         }
+
     }
 }
