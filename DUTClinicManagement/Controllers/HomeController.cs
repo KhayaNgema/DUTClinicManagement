@@ -84,8 +84,28 @@ namespace DUTClinicManagement.Controllers
             {
                 return View("PharmacistDashboard");
             }
+            else if (roles.Contains("Paramedic"))
+            {
+                return View("ParamedicDashboard");
+            }
             else if (roles.Contains("Nurse"))
             {
+                var chat = await _context.Conversations
+                        .Where(c => c.ResponderId == user.Id && c.IsOpen)
+                        .FirstOrDefaultAsync();
+
+                int messagesCount = 0;
+
+                if (chat != null)
+                {
+                    messagesCount = await _context.Messages
+                        .Where(mc => mc.ConversationId == chat.ConversationId &&
+                                     !mc.IsRead && mc.SenderId != user.Id)
+                        .CountAsync();
+                }
+
+                ViewBag.MessagesCount = messagesCount;
+
                 return View("NurseDashboard");
             }
             else if (roles.Contains("Receptionist"))
@@ -96,6 +116,24 @@ namespace DUTClinicManagement.Controllers
             {
                 var hasPendingFeedback = await _feedbackService.HasPendingFeedbackAsync(user.Id);
                 ViewBag.HasPendingFeedback = hasPendingFeedback;
+
+                var chat = await _context.Conversations
+                    .Where(c => c.PatientId == user.Id && c.IsOpen)
+                    .FirstOrDefaultAsync();
+
+                int messagesCount = 0; 
+
+                if (chat != null)
+                {
+                    messagesCount = await _context.Messages
+                        .Where(mc => mc.ConversationId == chat.ConversationId &&
+                                     !mc.IsRead && mc.SenderId != user.Id)
+                        .CountAsync();
+                }
+
+                ViewBag.MessagesCount = messagesCount;
+
+
 
                 return View("PatientDashboard");
             }

@@ -4,6 +4,7 @@ using DUTClinicManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DUTClinicManagement.Migrations
 {
     [DbContext(typeof(DUTClinicManagementDbContext))]
-    partial class DUTClinicManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250810110837_AddParamedicCord")]
+    partial class AddParamedicCord
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1383,14 +1386,6 @@ namespace DUTClinicManagement.Migrations
                     b.Property<int?>("BloodType")
                         .HasMaxLength(10)
                         .HasColumnType("int");
-
-                    b.Property<string>("EmergencyContactNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EmergencyContactPerson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasDiscriminator().HasValue("Patient");
                 });

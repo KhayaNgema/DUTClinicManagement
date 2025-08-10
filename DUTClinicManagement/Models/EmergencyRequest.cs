@@ -34,6 +34,15 @@ namespace DUTClinicManagement.Models
         public RequestLocation RequestLocation { get; set; }
 
         public Priority? Priority { get; set; }
+
+        public string ReferenceNumber { get; set; }
+
+        public double PatientLatitude { get; set; }
+
+        public double PatientLongitude { get; set; }
+        public double ParamedicLatitude { get; set; }
+
+        public double ParamedicLongitude { get; set; }
     }
 
     public enum RequestStatus

@@ -50,6 +50,15 @@ namespace DUTClinicManagement.Controllers
         }
 
         [Authorize(Roles = "System Administrator, Receptionist")]
+        public async Task<IActionResult> Paramedics()
+        {
+            var paramedics = await _context.Paramedics
+                .ToListAsync();
+
+            return View(paramedics);
+        }
+
+        [Authorize(Roles = "System Administrator, Receptionist")]
         public async Task<IActionResult> Nurses()
         {
             var nurses = await _context.Nurses

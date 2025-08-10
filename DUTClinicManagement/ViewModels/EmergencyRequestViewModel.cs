@@ -9,5 +9,9 @@ namespace DUTClinicManagement.ViewModels
         public RequestLocation RequestLocation { get; set; }
 
         public string EmergencyDetails { get; set; }
+
+        public double PatientLatitude { get; set; }
+
+        public double PatientLongitude { get; set; }
     }
 }

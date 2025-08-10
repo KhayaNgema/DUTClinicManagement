@@ -87,7 +87,9 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
             [Required]
             [EmailAddress]
             [Display(Name = "Email address")]
+            [RegularExpression(@"^[^@\s]+@dut4life\.ac\.za$", ErrorMessage = "You can only register using DUT email addresses")]
             public string Email { get; set; }
+
 
             [Required]
             [Display(Name = "First name(s)")]
@@ -118,6 +120,16 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
             [Display(Name = "Phone number")]
             [Phone(ErrorMessage = "Invalid phone number format.")]
             public string PhoneNumber { get; set; }
+
+            [Required]
+            [Display(Name = "Emergency contact number")]
+            [Phone(ErrorMessage = "Invalid phone number format.")]
+            public string EmergencyContactNumber { get; set; }
+
+
+            [Required]
+            [Display(Name = "Emergency contact person")]
+            public string EmergencyContactPerson { get; set; }
 
             [Display(Name = "Alternate phone number")]
             [Phone(ErrorMessage = "Invalid alternate phone number format.")]
@@ -197,7 +209,9 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account
                     Gender = Input.Gender,
                     IsSuspended = false,
                     IsFirstTimeLogin = false,
-                    IsDeleted = false
+                    IsDeleted = false,
+                    EmergencyContactNumber = Input.EmergencyContactNumber,
+                    EmergencyContactPerson = Input.EmergencyContactPerson
                 };
 
                 if (Input.ProfilePicture != null && Input.ProfilePicture.Length > 0)

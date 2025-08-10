@@ -17,7 +17,8 @@ namespace DUTClinicManagement.Services
         private readonly EmailService _emailService;
         public readonly SmsService _smsService;
 
-        public ReminderService(DUTClinicManagementDbContext context,
+        public ReminderService(
+            DUTClinicManagementDbContext context,
             UserManager<UserBaseModel> userManager,
             IEncryptionService encryptionService,
             EmailService emailService,
@@ -39,7 +40,7 @@ namespace DUTClinicManagement.Services
                 .Include(f => f.OrignalBooking)
                     .ThenInclude(b => b.Patient)
                 .Include(b => b.AssignedTo)
-                .Where(f => f.BookForDate == targetDate)
+                .Where(f => f.BookForDate.Date == targetDate.Date) 
                 .ToListAsync();
 
             foreach (var appointment in appointments)
@@ -47,27 +48,29 @@ namespace DUTClinicManagement.Services
                 var patient = appointment.OrignalBooking?.Patient;
                 var assignedTo = appointment.AssignedTo;
 
-                if (patient == null) continue;
+                if (patient == null)
+                    continue;
 
                 if (!DiseaseToDiseaseTypeMap.Map.TryGetValue(appointment.Disease, out var diseaseType))
-                    continue; 
+                    continue;
 
                 if (diseaseType != DiseaseType.Chronic)
-                    continue; 
+                    continue;
 
                 bool reminderExists = await _context.Reminders
                     .AnyAsync(r =>
                         r.BookingId == appointment.BookingId &&
                         r.Status == ReminderStatus.Sent &&
-                        r.ExpiryDate.Date == targetDate);
+                        r.ExpiryDate.Date == targetDate.Date);
 
                 if (reminderExists)
                     continue;
 
                 string link = "https://localhost:7175/Appointments/MyAppointments";
-                string message = $"Dear {patient.FirstName} {patient.LastName}, you have a follow-up appointment scheduled in 2 days on {appointment.BookForDate:dd MMM yyyy} " +
-                                 $"with Doctor/Nurse {assignedTo.FirstName} {assignedTo.LastName}." +
-                                 $"Please confirm or reschedule your appointment by visiting: {link}";
+                string message =
+                    $"Dear {patient.FirstName} {patient.LastName}, you have a follow-up appointment scheduled in 2 days on {appointment.BookForDate:dd MMM yyyy} " +
+                    $"with Doctor/Nurse {assignedTo.FirstName} {assignedTo.LastName}. " +
+                    $"Please confirm or reschedule your appointment by visiting: {link}";
 
                 if (!string.IsNullOrEmpty(patient.PhoneNumber))
                 {
@@ -75,10 +78,7 @@ namespace DUTClinicManagement.Services
                     {
                         await _smsService.SendSmsAsync(patient.PhoneNumber, message);
                     }
-                    catch (Exception smsEx)
-                    {
-                        Console.WriteLine($"Failed to send SMS to {patient.PhoneNumber}: {smsEx.Message}");
-                    }
+                    catch { }
                 }
 
                 if (!string.IsNullOrEmpty(patient.Email))
@@ -92,10 +92,7 @@ namespace DUTClinicManagement.Services
                             senderName: "DUT Clinic"
                         );
                     }
-                    catch (Exception emailEx)
-                    {
-                        Console.WriteLine($"Failed to send email to {patient.Email}: {emailEx.Message}");
-                    }
+                    catch { }
                 }
 
                 var reminder = new Reminder
@@ -107,11 +104,10 @@ namespace DUTClinicManagement.Services
                     ReminderMessage = message
                 };
 
-                _context.Add(reminder);
-                await _context.SaveChangesAsync();
+                _context.Reminders.Add(reminder);
             }
 
-           
+            await _context.SaveChangesAsync(); // ✅ Save once at the end
         }
     }
 }

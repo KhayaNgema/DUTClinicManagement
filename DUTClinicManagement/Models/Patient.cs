@@ -7,5 +7,9 @@ namespace DUTClinicManagement.Models
     {
         [StringLength(10, ErrorMessage = "Blood group cannot exceed 10 characters.")]
         public BloodType? BloodType { get; set; }
+
+        public string EmergencyContactNumber { get; set; }
+
+        public string EmergencyContactPerson { get; set; }
     }
 }

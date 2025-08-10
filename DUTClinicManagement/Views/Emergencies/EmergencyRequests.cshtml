@@ -1,0 +1,275 @@
+﻿@model IEnumerable<DUTClinicManagement.Models.EmergencyRequest>
+
+@{
+    ViewData["Title"] = "Emergency Requests";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+}
+
+<!-- Your CSS styles -->
+<style>
+    .order-card-col {
+        flex: 0 0 auto;
+        max-width: 380px;
+        margin-right: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .card-emergency {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow:
+            0 6px 12px rgba(0, 0, 0, 0.08),
+            0 1px 4px rgba(0, 0, 0, 0.06);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        transition: box-shadow 0.3s ease;
+        position: relative;
+    }
+    .card-emergency:hover {
+        box-shadow:
+            0 12px 24px rgba(0, 0, 0, 0.12),
+            0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-footer {
+        margin-top: auto;
+        padding-top: 1rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .btn-location {
+        width: 100%;
+    }
+
+    .emergency-details {
+        white-space: pre-line;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        color: #444;
+        min-height: 80px;
+    }
+
+    .patient-name,
+    .reference-number,
+    .request-time,
+    .status,
+    .priority {
+        margin-bottom: 0.3rem;
+        font-weight: 600;
+        color: #222;
+        font-size: 1rem;
+    }
+
+    .status.pending {
+        color: #f39c12;
+    }
+
+    .status.assigned {
+        color: #2980b9;
+    }
+
+    .status.departed {
+        color: #e67e22;
+    }
+
+    .status.arrived {
+        color: #27ae60;
+    }
+
+    .status.completed {
+        color: #95a5a6;
+    }
+</style>
+
+<br />
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4"
+         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+                border-radius: 0.75rem;">
+        <div class="d-flex align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </a>
+            <h2 class="mb-0 text-white">Emergency Requests</h2>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column flex-lg-row flex-lg-wrap overflow-auto pb-3">
+        @foreach (var request in Model)
+        {
+            <div class="order-card-col col-12 col-md-6 col-lg-4" role="region" aria-label="Emergency request card">
+                <div class="card card-emergency" tabindex="0">
+
+                    <div class="reference-number" title="Emergency Reference Number">
+                        Reference: <strong>@request.ReferenceNumber</strong>
+                    </div>
+
+                    <div class="patient-name" title="Patient Name">
+                        <i class="fas fa-user icon-patient" aria-hidden="true" style="margin-right: 0.3rem; color:#e74c3c;"></i>
+                        @(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "N/A")
+                    </div>
+
+                    <div class="request-time" title="Request Time">
+                        <i class="fas fa-clock" style="margin-right: 0.3rem; color:#34495e;"></i>
+                        @request.RequestTime.ToString("dd MMM yyyy HH:mm")
+                    </div>
+
+                    <div class="status @request.RequestStatus?.ToString().ToLower()" title="Request Status">
+                        Status: <span>@request.RequestStatus?.ToString()</span>
+                    </div>
+
+                    <div class="priority" title="Priority Level">
+                        Priority: <span>@(request.Priority?.ToString() ?? "N/A")</span>
+                    </div>
+
+                    <div class="emergency-details" title="Emergency Details">@request.EmergencyDetails</div>
+
+                    <div class="card-footer">
+                        <button 
+                            class="btn btn-danger btn-location" 
+                            type="button" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#locationModal" 
+                            data-lat="@request.PatientLatitude" 
+                            data-lng="@request.PatientLongitude"
+                            data-ref="@request.ReferenceNumber"
+                            data-id="@request.RequestId"
+                            aria-label="See location of emergency request @request.ReferenceNumber">
+                            <i class="fas fa-map-marker-alt"></i> See Location
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+<div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="locationModalLabel">Emergency Request Location - <span id="modalRequestRef"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-0" style="height: 400px;">
+        <div id="map" style="width: 100%; height: 100%;"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="driveToLocationBtn" type="button" class="btn btn-primary">Drive to location</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" asp-controller="Emergencies" asp-action="DriveToLocation" id="antiForgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@section Scripts {
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjJy4KrK5L3YGL8Ka8MTZwETc0TJLmTow&callback=initMap"></script>
+
+    <script>
+        let map;
+        let marker;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 0, lng: 0 },
+                zoom: 15
+            });
+            marker = new google.maps.Marker({
+                position: { lat: 0, lng: 0 },
+                map: map,
+                title: "Emergency Request Location"
+            });
+        }
+
+        $(document).ready(function() {
+
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            let currentRequestId = null;
+            let currentLat = null;
+            let currentLng = null;
+
+            $('#locationModal').on('show.bs.modal', function(e) {
+                const button = $(e.relatedTarget);
+
+                currentRequestId = button.data('id');
+                currentLat = button.data('lat');
+                currentLng = button.data('lng');
+                const ref = button.data('ref');
+
+                $('#modalRequestRef').text(ref);
+
+                if (map && marker) {
+                    const pos = new google.maps.LatLng(currentLat, currentLng);
+                    marker.setPosition(pos);
+                    map.setCenter(pos);
+                    map.setZoom(15);
+                    marker.setTitle("Emergency Request Location - " + ref);
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `<strong>Emergency Request Location</strong><br/>Ref: ${ref}`
+                    });
+                    infoWindow.open(map, marker);
+                }
+            });
+
+
+            $('#driveToLocationBtn').on('click', function() {
+                const $btn = $(this);
+                $btn.prop('disabled', true);
+
+                if (marker) {
+                    const pos = marker.getPosition();
+                    currentLat = pos.lat();
+                    currentLng = pos.lng();
+                }
+
+                if (!currentRequestId || currentLat === null || currentLng === null) {
+                    alert('Location data is missing.');
+                    $btn.prop('disabled', false);
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Emergencies/DriveToLocation',
+                    type: 'POST',
+                    data: {
+                        requestId: currentRequestId,
+                        latitude: currentLat,
+                        longitude: currentLng
+                    },
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    success: function(response) {
+                        alert(response.message || 'Drive started successfully.');
+                        $btn.hide();
+
+                    },
+                    error: function(xhr) {
+                        let msg = 'Failed to start drive. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg += '\n' + xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                        $btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -5,7 +5,8 @@
     Layout = "~/Views/Shared/_PagesLayout.cshtml";
 }
 
-<a asp-controller="Emergencies" asp-action="MyRequests" class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4 text-danger-emphasis">
+<a asp-controller="Emergencies" asp-action="MyRequests" 
+   class="text-decoration-none d-inline-flex align-items-center mt-4 ms-4 text-danger-emphasis">
     <i class="bi bi-chevron-left me-2 fs-5"></i><span class="fw-semibold">Back</span>
 </a>
 
@@ -13,7 +14,7 @@
 {
     <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
         @Html.Raw(TempData["Message"])
-        <span class="close" aria-label="Close">
+        <span class="close" aria-label="Close" role="button" tabindex="0" onclick="this.parentElement.style.display='none';">
             <span aria-hidden="true">&times;</span>
         </span>
     </div>
@@ -28,7 +29,7 @@
                     <h3 class="text-danger m-0 fw-bold">Emergency Request</h3>
                 </div>
 
-                <form asp-action="EmergencyRequest" method="post" id="appointmentForm">
+                <form asp-action="EmergencyRequest" method="post" id="appointmentForm" novalidate>
                     @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -38,6 +39,7 @@
                                 asp-items="Html.GetEnumSelectList<RequestLocation>()">
                             <option value="">-- Select Location --</option>
                         </select>
+                        <span asp-validation-for="RequestLocation" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
@@ -47,6 +49,9 @@
                     </div>
 
                     <input asp-for="PatientId" type="hidden" />
+
+                    <input asp-for="PatientLatitude" id="PatientLatitude" type="hidden" />
+                    <input asp-for="PatientLongitude" id="PatientLongitude" type="hidden" />
 
                     <div class="d-grid mt-4">
                         <button type="submit" class="btn btn-danger btn-lg fw-semibold rounded-pill">
@@ -59,9 +64,32 @@
     </div>
 </div>
 
-<script>
-    setTimeout(function () {
-        const message = document.getElementById("tempDataMessage");
-        if (message) message.style.display = "none";
-    }, 7000);
-</script>
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        document.getElementById("PatientLatitude").value = position.coords.latitude;
+                        document.getElementById("PatientLongitude").value = position.coords.longitude;
+                    },
+                    function (error) {
+                        console.warn("Geolocation failed or permission denied.", error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                console.warn("Geolocation is not supported by this browser.");
+            }
+        });
+
+        setTimeout(function () {
+            var message = document.getElementById("tempDataMessage");
+            if (message) message.style.display = "none";
+        }, 7000);
+    </script>
+}

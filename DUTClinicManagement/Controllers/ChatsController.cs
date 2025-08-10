@@ -18,10 +18,29 @@ namespace DUTClinicManagement.Controllers
             _context = context;
         }
 
-        public IActionResult Chats()
+        public async Task<IActionResult> Chats()
         {
             var role = User.FindFirstValue(ClaimTypes.Role);
             ViewBag.Role = role;
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var chat = await _context.Conversations
+                .Where(c => c.PatientId == userId && c.IsOpen)
+                .FirstOrDefaultAsync();
+
+            var messages = await _context.Messages
+                .Where(m => m.SenderId != userId)
+                .ToListAsync();
+
+            foreach (var message in messages)
+            {
+                message.IsRead = true;
+                _context.Update(message);
+            }
+
+            await _context.SaveChangesAsync();
+
             return View();
         }
 
@@ -58,6 +77,30 @@ namespace DUTClinicManagement.Controllers
                 });
 
             return Json(messages);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChatEnded()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> EndChat()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var conversation = await _context.Conversations
+                .Where(c => (c.PatientId == userId || c.ResponderId == userId) && c.IsOpen)
+                .FirstOrDefaultAsync();
+
+            conversation.IsOpen = false;
+
+            _context.Update(conversation);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(ChatEnded));
         }
     }
 }

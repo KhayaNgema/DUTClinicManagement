@@ -1,0 +1,100 @@
+﻿@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Chat Ended";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+
+    var roles = ((ClaimsIdentity)User.Identity).Claims
+                    .Where(c => c.Type == ClaimTypes.Role)
+                    .Select(c => c.Value);
+
+    var hasAnyRole = roles.Any();
+}
+
+<style>
+    .ended-container {
+        max-width: 600px;
+        height: 60vh;
+        margin: 5rem auto;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .ended-message {
+        font-size: 2.25rem;
+        font-weight: 600;
+        color: #8B0000; 
+        margin-bottom: 2rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .ended-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .btn-home, .btn-new-chat {
+        flex: 1 1 140px;
+        padding: 0.75rem 1.5rem;
+        font-size: 1.15rem;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .btn-home {
+        background: linear-gradient(to right, #010123, #8B0000);
+        color: white;
+        border: none;
+    }
+
+    .btn-home:hover, 
+    .btn-home:focus {
+        background: linear-gradient(to right, #8B0000, #010123);
+        outline: none;
+    }
+
+    .btn-new-chat {
+        background-color: #e4e6eb;
+        color: #010123;
+        border: 2px solid #010123;
+    }
+
+    .btn-new-chat:hover,
+    .btn-new-chat:focus {
+        background-color: #010123;
+        color: white;
+        border-color: #8B0000;
+        outline: none;
+    }
+</style>
+
+<div class="ended-container">
+    <div class="ended-message">
+        You have ended this conversation.
+    </div>
+    <div class="ended-buttons">
+        <a href="/" class="btn-home btn" role="button" aria-label="Go to Home">
+            Home
+        </a>
+        @if (!hasAnyRole)
+        {
+        <a href="/Chats/Chat" class="btn-new-chat btn" role="button" aria-label="Start a new chat">
+            Start a new Chat
+        </a>
+         }
+
+    </div>
+</div>

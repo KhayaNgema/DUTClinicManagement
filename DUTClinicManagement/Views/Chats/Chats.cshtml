@@ -5,7 +5,14 @@
     Layout = "~/Views/Shared/_PagesLayout.cshtml";
 
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    var roles = ((ClaimsIdentity)User.Identity).Claims
+                    .Where(c => c.Type == ClaimTypes.Role)
+                    .Select(c => c.Value);
+
+    var hasAnyRole = roles.Any();
 }
+
 
 <style>
     .chat-container {
@@ -71,10 +78,13 @@
         background-color: #ffffff;
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
     }
 
     .chat-input textarea {
-        width: 100%;
+        flex-grow: 1;
         border-radius: 20px;
         resize: none;
         padding: 10px 15px;
@@ -82,11 +92,41 @@
         line-height: 1.5;
         max-height: 150px;
         border: 1px solid #ccc;
+        min-height: 38px; 
+        font-size: 1rem;
+        font-family: inherit;
     }
 
+
     .chat-input .send-button {
-        margin-left: 10px;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 5px;
+        color: #0d6efd; 
+        font-size: 1.5rem;
+        line-height: 1;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 38px;
+        height: 38px;
+    }
+
+    .chat-input .send-button:hover,
+    .chat-input .send-button:focus {
+        background: transparent !important;
+        color: #0a58ca;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+
+    .chat-input .end-chat-button {
         white-space: nowrap;
+        min-height: 38px;
+        padding: 0 15px;
     }
 </style>
 
@@ -98,10 +138,17 @@
         <div class="chat-messages" id="chatMessages">
             <div class="text-muted">Say hello to start chatting...</div>
         </div>
-        <div class="chat-input d-flex align-items-end">
-            <textarea id="chatInput" class="form-control" rows="1" placeholder="Type your message..."></textarea>
-            <button class="btn btn-primary send-button" id="sendBtn"><i class="bi bi-send"></i></button>
-        </div>
+
+        <form method="post" action="/Chats/EndChat" class="chat-input" autocomplete="off">
+            <textarea id="chatInput" name="message" class="form-control" rows="1" placeholder="Type your message..." spellcheck="false"></textarea>
+
+            <button type="button" class="btn send-button" id="sendBtn" aria-label="Send message" title="Send message">
+                <i class="bi bi-send"></i>
+            </button>
+             <button type="submit" class="btn btn-danger end-chat-button">
+                End Chat
+            </button>
+        </form>
     </div>
 </div>
 
@@ -132,7 +179,7 @@
                 const messageHtml = `
                     <div class="${alignment} mb-2">
                         <div class="chat-message ${cssClass} d-inline-block">${escapeHtml(msg.content)}</div>
-                         <div class="text-muted small mb-1">${msg.senderName} • ${msg.sentAt}</div>
+                        <div class="text-muted small mb-1">${msg.senderName} • ${msg.sentAt}</div>
                     </div>
                 `;
                 chat.append(messageHtml);
@@ -148,6 +195,9 @@
     }).catch(err => console.error(err.toString()));
 
     $('#sendBtn').on('click', sendMessage);
+
+    $('#chatInput').on('input', autoResize);
+
     $('#chatInput').on('keypress', function (e) {
         if (e.which === 13 && !e.shiftKey) {
             e.preventDefault();
@@ -170,8 +220,15 @@
         `;
         chat.append(messageHtml);
         $('#chatInput').val('');
+        autoResize();
         chat.scrollTop(chat[0].scrollHeight);
         connection.invoke("SendMessageToDepartment", conversationId, message);
+    }
+
+    function autoResize() {
+        const textarea = $('#chatInput')[0];
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
     }
 
     connection.on("ReceiveMessage", function (fromUser, message) {

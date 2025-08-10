@@ -4,6 +4,7 @@ using DUTClinicManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DUTClinicManagement.Migrations
 {
     [DbContext(typeof(DUTClinicManagementDbContext))]
-    partial class DUTClinicManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250810094729_AddGenRefNumberEmr")]
+    partial class AddGenRefNumberEmr
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -293,21 +296,9 @@ namespace DUTClinicManagement.Migrations
                     b.Property<string>("ParamedicId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<double>("ParamedicLatitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("ParamedicLongitude")
-                        .HasColumnType("float");
-
                     b.Property<string>("PatientId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<double>("PatientLatitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("PatientLongitude")
-                        .HasColumnType("float");
 
                     b.Property<int?>("Priority")
                         .HasColumnType("int");
@@ -1383,14 +1374,6 @@ namespace DUTClinicManagement.Migrations
                     b.Property<int?>("BloodType")
                         .HasMaxLength(10)
                         .HasColumnType("int");
-
-                    b.Property<string>("EmergencyContactNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EmergencyContactPerson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasDiscriminator().HasValue("Patient");
                 });

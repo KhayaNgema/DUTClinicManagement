@@ -94,7 +94,6 @@
     <h2 class="dashboard-heading">Welcome, @ViewBag.LoggedInUser 👋</h2>
 
     <div class="row g-4">
-        <!-- Appointments -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
@@ -124,7 +123,6 @@
             </div>
         </div>
 
-        <!-- Medical History -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
@@ -139,19 +137,19 @@
             </div>
         </div>
 
-        <!-- Chats -->
         <div class="col-md-6 col-lg-6">
-            <div class="glass-card h-100 text-center d-flex flex-column justify-content-center align-items-center">
-                <div class="position-relative mb-2">
-                    <i class="fas fa-comments card-icon" style="font-size:40px"></i>
-                    <span class="badge-message-count">4</span>
-                </div>
-                <div class="card-title">Chats</div>
-                <div class="card-text">Follow up with patients & doctors</div>
-                <a asp-controller="Chats" asp-action="Chats" class="dashboard-link mt-2">
-                    Open Chats <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
+    <div class="glass-card h-100 text-center d-flex flex-column justify-content-center align-items-center">
+        <div class="position-relative mb-2">
+            <i class="fas fa-comments card-icon" style="font-size:40px"></i>
+            <span class="badge-message-count">@ViewBag.MessagesCount</span>
         </div>
+        <div class="card-title">Chats</div>
+        <div class="card-text">Follow up with patients & doctors</div>
+        <a asp-controller="Chats" asp-action="Chats" class="dashboard-link mt-2">
+            Open Chats <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
     </div>
 </div>
