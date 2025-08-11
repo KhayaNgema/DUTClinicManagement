@@ -76,5 +76,9 @@ namespace DUTClinicManagement.ViewModels
 
         [DisplayName("Pescription type")]
         public PrescriptionType PrescriptionType { get; set; }
+
+        public DateTime? LastCollectionDate {  get; set; }
+
+        public string AdditionalNotes { get; set; }
     }
 }

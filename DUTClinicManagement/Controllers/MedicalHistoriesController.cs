@@ -1,12 +1,14 @@
 ﻿using DUTClinicManagement.Data;
 using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Models;
-using DUTClinicManagement.ViewModels;
 using DUTClinicManagement.Services;
+using DUTClinicManagement.ViewModels;
+using HospitalManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace DUTClinicManagement.Controllers
 {
@@ -17,16 +19,19 @@ namespace DUTClinicManagement.Controllers
         private readonly UserManager<UserBaseModel> _userManager;
         private readonly IEncryptionService _encryptionService;
         private readonly EmailService _emailService;
+        private readonly QrCodeService _qrCodeService;
 
         public MedicalHistoriesController(DUTClinicManagementDbContext context,
             UserManager<UserBaseModel> userManager,
             IEncryptionService encryptionService,
-            EmailService emailService)
+            EmailService emailService,
+            QrCodeService qrCodeService)
         {
             _context = context;
             _userManager = userManager;
             _encryptionService = encryptionService;
             _emailService = emailService;
+            _qrCodeService = qrCodeService;
         }
 
         [Authorize(Roles = "Doctor, Nurse")]
@@ -144,6 +149,7 @@ namespace DUTClinicManagement.Controllers
 
         [Authorize(Roles = "Doctor, Nurse")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> NewMedicalRecord(NewMedicalRecordViewModel viewModel)
         {
             try
@@ -151,8 +157,8 @@ namespace DUTClinicManagement.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 var roles = await _userManager.GetRolesAsync(user);
 
-                var isDoctor = roles.Contains("Doctor");
-                var isNurse = roles.Contains("Nurse");
+                bool isDoctor = roles.Contains("Doctor");
+                bool isNurse = roles.Contains("Nurse");
 
                 var newMedicalRecord = new MedicalHistory
                 {
@@ -178,64 +184,84 @@ namespace DUTClinicManagement.Controllers
                     RecordedAt = DateTime.Now,
                     CreatedById = user.Id,
                     UpdatedById = user.Id,
-                    PrescribedMedication = null,
                     CollectAfterCount = viewModel.CollectAfterCount,
                     CollectionInterval = viewModel.CollectionInterval,
-                    UntilDate = DateTime.Now,
+                    UntilDate = viewModel.UntilDate ?? DateTime.Now,
                     PrescriptionType = viewModel.PrescriptionType
                 };
 
                 _context.MedicalHistorys.Add(newMedicalRecord);
                 await _context.SaveChangesAsync();
 
-                var booking = await _context.Bookings
-                    .FirstOrDefaultAsync(b => b.BookingId == viewModel.BookingId);
+                var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == viewModel.BookingId);
 
-                if (booking != null)
+                if (viewModel.PrescribedMedication != null && viewModel.PrescribedMedication.Any())
                 {
+                    DateTime baseDate = viewModel.LastCollectionDate ?? DateTime.Now;
+                    int count = viewModel.CollectAfterCount ?? 0;
+
+                    DateTime tentativeNextCollectionDate = baseDate;
+
+                    switch (viewModel.CollectionInterval)
+                    {
+                        case CollectionInterval.Day:
+                            tentativeNextCollectionDate = baseDate.AddDays(count);
+                            break;
+                        case CollectionInterval.Week:
+                            tentativeNextCollectionDate = baseDate.AddDays(count * 7);
+                            break;
+                        case CollectionInterval.Month:
+                            tentativeNextCollectionDate = baseDate.AddMonths(count);
+                            break;
+                        case CollectionInterval.Year:
+                            tentativeNextCollectionDate = baseDate.AddYears(count);
+                            break;
+                    }
+
+                    if (viewModel.UntilDate.HasValue && tentativeNextCollectionDate > viewModel.UntilDate.Value)
+                    {
+                        tentativeNextCollectionDate = viewModel.UntilDate.Value;
+                    }
+
+                    DateTime finalNextCollectionDate = tentativeNextCollectionDate;
+
+                    var prescribedMedicationIds = viewModel.PrescribedMedication.Select(pm => pm.MedicationId).ToList();
+
+                    var medications = await _context.Medications
+                        .Where(m => prescribedMedicationIds.Contains(m.MedicationId))
+                        .ToListAsync();
+
                     var medicationPescription = new MedicationPescription
                     {
-                        AdditionalNotes = viewModel.Notes,
-                        CollectAfterCount = null,
+                        AdditionalNotes = viewModel.AdditionalNotes,
+                        BookingId = booking?.BookingId ?? 0,
+                        CollectAfterCount = viewModel.CollectAfterCount,
                         CreatedAt = DateTime.Now,
                         LastUpdatedAt = DateTime.Now,
-                        CollectionInterval = null,
+                        CollectionInterval = viewModel.CollectionInterval,
                         CreatedById = user.Id,
                         HasDoneCollecting = false,
-                        ExpiresAt = null,
-                        NextCollectionDate = null,
-                        PrescriptionType = null,
+                        NextCollectionDate = finalNextCollectionDate,
+                        PrescribedMedication = medications,
+                        PrescriptionType = viewModel.PrescriptionType,
                         UpdatedById = user.Id,
-                        BookingId = viewModel.BookingId,
-                        PrescribedMedication = new List<Medication>(),
-                        AccessCode = booking.BookingReference,
+                        ExpiresAt = viewModel.UntilDate,
+                        AccessCode = booking?.BookingReference ?? string.Empty,
+                        LastCollectionDate = baseDate
                     };
-
-                    if (viewModel.PrescribedMedication != null && viewModel.PrescribedMedication.Any())
-                    {
-                        foreach (var med in viewModel.PrescribedMedication)
-                        {
-                            var medicationEntity = await _context.Medications
-                                .FirstOrDefaultAsync(m => m.MedicationId == med.MedicationId);
-
-                            if (medicationEntity != null)
-                            {
-                                medicationPescription.PrescribedMedication.Add(medicationEntity);
-                            }
-                        }
-                    }
 
                     _context.Add(medicationPescription);
                     await _context.SaveChangesAsync();
 
+                    medicationPescription.QrCodeImage = _qrCodeService.GenerateQrCode(medicationPescription.AccessCode);
                     _context.Update(medicationPescription);
                     await _context.SaveChangesAsync();
+
+                    TempData["Message"] = $"You have successfully added new medical record for {viewModel.FirstName} {viewModel.LastName}";
+
+                    var encryptedMedicalRecordId = _encryptionService.Encrypt(viewModel.PatientMedicalHistoryId);
+                    return RedirectToAction(nameof(PatientMedicalRecord), new { medicalHistoryId = encryptedMedicalRecordId });
                 }
-
-                TempData["Message"] = $"You have successfully added new medical record for {viewModel.FirstName} {viewModel.LastName}";
-
-                var encryptedMedicalRecordId = _encryptionService.Encrypt(viewModel.PatientMedicalHistoryId);
-                return RedirectToAction(nameof(PatientMedicalRecord), new { medicalHistoryId = encryptedMedicalRecordId });
             }
             catch (Exception ex)
             {
@@ -250,7 +276,10 @@ namespace DUTClinicManagement.Controllers
                     }
                 });
             }
+
+            return View(viewModel);
         }
+
 
 
     }

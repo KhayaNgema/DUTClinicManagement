@@ -22,6 +22,7 @@ using System;
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading;
+using HospitalManagement.Services;
 public class Startup
 {
     public Startup(IConfiguration configuration)
@@ -121,6 +122,7 @@ public class Startup
         services.AddScoped<FileUploadService>();
         services.AddScoped<RandomPasswordGeneratorService>();
         services.AddScoped<EmailService>();
+        services.AddScoped<QrCodeService>();
         services.AddScoped<FeedbackService>();
         services.AddSignalR();
         services.AddScoped<SmsService>();

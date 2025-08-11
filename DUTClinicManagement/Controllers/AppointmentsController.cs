@@ -97,9 +97,8 @@ namespace DUTClinicManagement.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             var appointments = await _context.FollowUpAppointments
-                 .Where(a => a.Status == BookingStatus.Awaiting ||
-                 a.Status == BookingStatus.Assigned &&
-                 a.AssignedUserId == user.Id)
+                .Where(a => (a.Status == BookingStatus.Completed || a.Status == BookingStatus.Assigned)
+                 && a.AssignedUserId == user.Id)
                 .Include(a => a.Booking)
                 .ThenInclude(a=>a.CreatedBy)
                 .Include(a => a.CreatedBy)
