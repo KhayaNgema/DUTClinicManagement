@@ -83,7 +83,7 @@
     <h2 class="dashboard-heading">Welcome, @ViewBag.LoggedInUser 👋</h2>
 
     <div class="row g-4">
-        <!-- Medication Requests -->
+
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
@@ -97,15 +97,15 @@
             </div>
         </div>
 
-        <!-- Previous Medication Requests -->
+
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
-                    <i class="fas fa-box-open card-icon"></i>
+                    <i class="fas fa-truck card-icon"></i>
                 </div>
-                <div class="card-title">Previous Medication Requests</div>
-                <div class="card-text">Previous medication prescription requests are listed here</div>
-                <a asp-controller="Medications" asp-action="PreviousMedicationRequests" class="dashboard-link">
+                <div class="card-title">Medication Delivery Requests</div>
+                <div class="card-text">Medication delivery requests are listed here</div>
+                <a asp-controller="Deliveries" asp-action="DeliveryRequests" class="dashboard-link">
                     View Requests <i class="fas fa-arrow-right"></i>
                 </a>
             </div>

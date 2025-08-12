@@ -4,6 +4,7 @@ using DUTClinicManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DUTClinicManagement.Migrations
 {
     [DbContext(typeof(DUTClinicManagementDbContext))]
-    partial class DUTClinicManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250811193232_AddDeliveries")]
+    partial class AddDeliveries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -181,10 +184,6 @@ namespace DUTClinicManagement.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DeliveryRequestReference")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("LastUpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -194,9 +193,6 @@ namespace DUTClinicManagement.Migrations
                     b.Property<string>("PatientId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<byte[]>("QrCodeImage")
-                        .HasColumnType("varbinary(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

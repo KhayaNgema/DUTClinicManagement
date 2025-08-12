@@ -1,0 +1,301 @@
+﻿@model IEnumerable<DUTClinicManagement.Models.DeliveryRequest>
+
+@{
+    ViewData["Title"] = "Pending Deliveries";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+
+    string getStatusClass(DUTClinicManagement.Models.DeliveryRequestStatus status) =>
+        status switch
+        {
+            DUTClinicManagement.Models.DeliveryRequestStatus.Delivering => "status-warning",
+            DUTClinicManagement.Models.DeliveryRequestStatus.Prepared => "status-default",
+            DUTClinicManagement.Models.DeliveryRequestStatus.Collected => "status-success",
+            _ => "status-default"
+        };
+}
+
+<style>
+    .order-card-col {
+        flex: 0 0 auto;
+        max-width: 380px;
+        margin-right: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .card-receipt {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow:
+            0 6px 12px rgba(0, 0, 0, 0.08),
+            0 1px 4px rgba(0, 0, 0, 0.06);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        transition: box-shadow 0.3s ease;
+    }
+    .card-receipt:hover {
+        box-shadow:
+            0 12px 24px rgba(0, 0, 0, 0.12),
+            0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eaeaea;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .order-number {
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #34495e;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        white-space: normal;
+    }
+
+    .order-status {
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        user-select: none;
+        min-width: 90px;
+        text-align: center;
+        letter-spacing: 0.05em;
+        font-family: 'Segoe UI Semibold', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        white-space: normal;
+    }
+
+    .status-default {
+        background-color: #3498db;
+        color: white;
+        box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+    }
+
+    .status-warning {
+        background-color: #f39c12;
+        color: white;
+        box-shadow: 0 2px 6px rgba(243, 156, 18, 0.4);
+    }
+
+    .status-success {
+        background-color: #27ae60;
+        color: white;
+        box-shadow: 0 2px 6px rgba(39, 174, 96, 0.4);
+    }
+
+    .patient-name,
+    .address {
+        font-size: 0.95rem;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        white-space: normal;
+    }
+
+    .patient-name i,
+    .address i {
+        color: #2c3e50;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+
+    .delivery-items-list {
+        margin-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 1rem;
+        overflow-y: auto;
+        max-height: 180px;
+    }
+
+    .delivery-item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.7rem;
+        font-size: 0.92rem;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid #f7f7f7;
+        color: #55595c;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        white-space: normal;
+    }
+
+    .delivery-item:last-child {
+        border-bottom: none;
+    }
+
+    .delivery-item i {
+        color: #6c757d;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .btn-small {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background-color 0.25s ease;
+    }
+
+    .btn-warning.btn-small:hover {
+        background-color: #e0a800cc;
+        color: #fff;
+    }
+
+    .card-footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1rem;
+    }
+
+    .d-flex.flex-column.flex-lg-row.flex-lg-wrap.overflow-auto.pb-3 {
+        flex-direction: column;
+    }
+
+</style>
+<br>
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4"
+         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+                border-radius: 0.75rem;">
+        <div class="d-flex align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </a>
+            <h2 class="mb-0 text-white">Pending Medication Deliveries</h2>
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">No pending medication deliveries found.</div>
+    }
+    else
+    {
+        <div class="d-flex flex-column flex-lg-row flex-lg-wrap overflow-auto pb-3">
+            @foreach (var request in Model)
+            {
+                <div class="order-card-col col-12 col-md-12 col-lg-4" data-delivery-request-id="@request.DeliveryRequestId" role="region" aria-label="Delivery request card">
+                    <div class="card card-receipt" tabindex="0" aria-describedby="delivery-status-@request.DeliveryRequestId">
+                        <div class="card-header">
+                            <div class="order-number" title="Delivery Request Reference">##@request.DeliveryRequestReference</div>
+                            <div class="order-status @getStatusClass(request.Status)" id="delivery-status-@request.DeliveryRequestId" aria-live="polite" aria-atomic="true" aria-relevant="text">
+                                @request.Status.ToString()
+                            </div>
+                        </div>
+
+                        <div class="patient-name" title="Patient Name">
+                            <i class="fas fa-user icon-patient" aria-hidden="true"></i>
+                            <span>@(request.Patient != null ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "N/A")</span>
+                        </div>
+
+                        <div class="address" title="Delivery Address">
+                            <i class="fas fa-map-marker-alt" style="color: #d93025;" aria-hidden="true"></i>
+                            <span>@request.Address</span>
+                        </div>
+
+                        <div class="delivery-items-list" aria-label="Medications in delivery request">
+                            @if (request.MedicationPescription?.PrescribedMedication?.Any() ?? false)
+                            {
+                                foreach (var item in request.MedicationPescription.PrescribedMedication)
+                                {
+                                    <div class="delivery-item">
+                                        <span> - @item.MedicationName</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-muted">No package items found.</div>
+                            }
+                        </div>
+
+                        <div class="card-footer">
+                            @if (request.Status == DUTClinicManagement.Models.DeliveryRequestStatus.Prepared)
+                            {
+                                <button class="btn btn-small btn-deliver" id="addButton" data-delivery-request-id="@request.DeliveryRequestId" type="button" aria-label="Mark delivery request as delivering">
+                                    <i class="fas fa-truck-loading"></i> Start delivery
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    $(function() {
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        setTimeout(function () {
+            $("#tempDataMessage").fadeOut();
+        }, 7000);
+
+        function updateStatus(deliveryRequestId, newStatus) {
+            var statusDiv = $('#delivery-status-' + deliveryRequestId);
+            statusDiv.text(newStatus);
+            statusDiv.removeClass('status-default status-warning status-success');
+
+            if (newStatus === 'Delivering') {
+                statusDiv.addClass('status-warning');
+            } else if (newStatus === 'Collected') {
+                statusDiv.addClass('status-success');
+            } else if (newStatus === 'Prepared') {
+                statusDiv.addClass('status-default');
+            } else {
+                statusDiv.addClass('status-default');
+            }
+        }
+
+        $('.btn-deliver').on('click', function () {
+            var btn = $(this);
+            var id = btn.data('delivery-request-id');
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("StartDelivery", "Deliveries")',
+                type: 'POST',
+                data: { deliveryRequestId: id },
+                headers: { 'RequestVerificationToken': token },
+                success: function () {
+                    updateStatus(id, 'Delivering');
+                    btn.hide();
+                },
+                error: function () {
+                    alert('Failed to update status to Delivering. Please try again.');
+                    btn.prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>
+}

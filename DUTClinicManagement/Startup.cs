@@ -124,6 +124,7 @@ public class Startup
         services.AddScoped<EmailService>();
         services.AddScoped<QrCodeService>();
         services.AddScoped<FeedbackService>();
+        services.AddScoped<ReceiveMedication>();
         services.AddSignalR();
         services.AddScoped<SmsService>();
         services.AddScoped<ChatAssignmentService>();

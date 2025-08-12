@@ -1,0 +1,186 @@
+﻿@model DUTClinicManagement.ViewModels.ReceiveDeliveryViewModel
+@{
+    ViewData["Title"] = "Receive Delivery";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+}
+@Html.AntiForgeryToken()
+
+<style>
+    #scanner {
+        width: 100%;
+        max-width: 300px;
+        height: 220px;
+        border: 2px solid #48AAAD;
+        border-radius: 12px;
+        margin: 2rem auto;
+    }
+    #scanMessage {
+        max-width: 400px;
+        margin: 1rem auto;
+        font-size: 1.1rem;
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        opacity: 0;
+        transition: opacity 0.4s ease-in-out;
+        pointer-events: none;
+    }
+    #scanMessage.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    #scanMessage.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1.5px solid #c3e6cb;
+        box-shadow: 0 0 10px #a5d6a7;
+    }
+    #scanMessage.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1.5px solid #f5c6cb;
+        box-shadow: 0 0 10px #f3a6aa;
+    }
+    .check-icon {
+        width: 28px;
+        height: 28px;
+        stroke-width: 3;
+        stroke: #28a745;
+        stroke-miterlimit: 10;
+        box-sizing: content-box;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: dash 0.5s forwards ease-out;
+    }
+
+    #rescanButton {
+        display: none;
+        margin: 1rem auto 0;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: #28a745;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.25s ease;
+    }
+    #rescanButton:hover {
+        background-color: #218838;
+    }
+</style>
+
+<br />
+<div class="container text-center">
+    <input type="hidden" id="DeliveryId" value="@Model.DeliveryId" />
+    <h2 class="mb-4" style="color:#010123;">Scan the QR Code on the medication package handed by your driver</h2>
+    <h5 class="mb-4" style="color:#010123;">
+        Align the medication package QR Code handed by the driver to scan and verify that it belongs to you.
+    </h5>
+
+    <div id="scanMessage" role="alert" aria-live="polite" aria-atomic="true"></div>
+    <div id="scanner"></div>
+    <button id="rescanButton" type="button" aria-label="Scan another delivery package">Scan Another Package</button>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        $(function () {
+            var scanner = new Html5Qrcode("scanner");
+            var scanningPaused = false;
+            var messageDiv = $("#scanMessage");
+            var rescanBtn = $("#rescanButton");
+
+            function showMessage(text, isError) {
+                messageDiv.text(text)
+                    .removeClass('success error')
+                    .addClass(isError ? 'error' : 'success show');
+                if (!isError) {
+                    if (messageDiv.find("svg.check-icon").length === 0) {
+                        var svgCheck = `
+                        <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" aria-hidden="true" focusable="false">
+                            <circle cx="26" cy="26" r="25" fill="none" stroke="#28a745" stroke-width="2"/>
+                            <path fill="none" stroke="#28a745" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14 27l7 7 16-16"/>
+                        </svg>`;
+                        messageDiv.prepend(svgCheck);
+                    }
+                } else {
+                    messageDiv.removeClass('show');
+                    messageDiv.find("svg.check-icon").remove();
+                    messageDiv.addClass('show');
+                }
+            }
+
+            function clearMessage() {
+                messageDiv.text('').removeClass('success error show');
+                messageDiv.find("svg.check-icon").remove();
+            }
+
+            function startScanner() {
+                $("#scanner").show();
+                scanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    (decodedText) => {
+                        if (scanningPaused) return;
+                        scanningPaused = true;
+                        verifyPackage(decodedText.trim());
+                    },
+                    (errorMessage) => {
+                    }
+                ).catch(err => {
+                    showMessage("Unable to start camera. Please check permissions and reload the page.", true);
+                });
+                rescanBtn.hide();
+            }
+
+            function stopScanner() {
+                scanner.stop().then(() => {
+                    console.log("Scanner stopped.");
+                    $("#scanner").hide();
+                    rescanBtn.show().focus();
+                }).catch(err => {
+                    console.error("Failed to stop scanner:", err);
+                });
+            }
+
+            function verifyPackage(scannedText) {
+                var deliveryId = $("#DeliveryId").val();
+                $.ajax({
+                    url: '@Url.Action("ConfirmDelivery", "Deliveries")',
+                    type: 'POST',
+                    data: { qrCodeNumber: scannedText, deliveryId: deliveryId },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            showMessage(response.message || "Package verified successfully! Thank you for confirming delivery.", false);
+                            stopScanner();
+                        } else {
+                            showMessage(response.message || "Invalid package.", true);
+                            setTimeout(() => scanningPaused = false, 1000);
+                        }
+                    },
+                    error: function () {
+                        showMessage("An error occurred while verifying package.", true);
+                        setTimeout(() => scanningPaused = false, 2000);
+                    }
+                });
+            }
+
+            rescanBtn.on("click", function () {
+                clearMessage();
+                scanningPaused = false;
+                startScanner();
+            });
+
+            startScanner();
+        });
+    </script>
+}

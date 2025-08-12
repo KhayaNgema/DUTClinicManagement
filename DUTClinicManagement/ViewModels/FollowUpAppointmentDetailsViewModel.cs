@@ -24,9 +24,7 @@ namespace DUTClinicManagement.ViewModels
 
         public string DoctorId { get; set; }
 
-        public string DoctorFullNames { get; set; }
-
-
+        public string DoctorNurseNames { get; set; }
 
         public DateTime BookForDate { get; set; }
 

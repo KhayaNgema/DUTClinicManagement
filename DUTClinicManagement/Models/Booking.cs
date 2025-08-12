@@ -50,7 +50,7 @@ namespace DUTClinicManagement.Models
 
         public string? AssignedUserId { get; set; }
         [ForeignKey("AssignedUserId")]
-        public virtual Nurse AssignedTo { get; set; }
+        public virtual UserBaseModel AssignedTo { get; set; }
 
         public AppointmentType AppointmentType { get; set; }
     }

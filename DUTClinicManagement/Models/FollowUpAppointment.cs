@@ -16,7 +16,7 @@ namespace DUTClinicManagement.Models
 
         public int OriginalBookingId { get; set; }
         [ForeignKey("OriginalBookingId")]
-        public virtual Booking Booking { get; set; }
+        public virtual Booking OrignalBooking { get; set; }
 
         [Display(Name = "Instructions/Notes")]
         public ICollection<string>? Instructions { get; set; } = new List<string>();

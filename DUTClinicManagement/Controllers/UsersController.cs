@@ -29,6 +29,17 @@ namespace DUTClinicManagement.Controllers
             _emailService = emailService;
         }
 
+        
+
+        [Authorize(Roles = "System Administrator, Receptionist")]
+        public async Task<IActionResult> DeliveryPersonnels()
+        {
+            var deliveryPersonnels = await _context.DeliveryGuys
+                .ToListAsync();
+
+            return View(deliveryPersonnels);
+        }
+
         [Authorize(Roles = "System Administrator, Receptionist")]
         public async Task<IActionResult> Doctors()
         {

@@ -33,17 +33,20 @@ namespace DUTClinicManagement.Services
         public async Task SendRemindersAsync()
         {
             var today = DateTime.Today;
-            var targetDate = today.AddDays(3);
+            var targetDate = today.AddDays(2);
 
             var appointments = await _context.FollowUpAppointments
-                .Include(f => f.Booking)
+                .Include(f => f.OrignalBooking)
                     .ThenInclude(b => b.Patient)
+                .Include(b => b.AssignedTo)
                 .Where(f => f.BookForDate == targetDate)
                 .ToListAsync();
 
             foreach (var appointment in appointments)
             {
-                var patient = appointment.Booking?.Patient;
+                var patient = appointment.OrignalBooking?.Patient;
+                var assignedTo = appointment.AssignedTo;
+
                 if (patient == null) continue;
 
                 if (!DiseaseToDiseaseTypeMap.Map.TryGetValue(appointment.Disease, out var diseaseType))
@@ -62,7 +65,8 @@ namespace DUTClinicManagement.Services
                     continue;
 
                 string link = "https://localhost:7175/Appointments/MyAppointments";
-                string message = $"Dear {patient.FirstName} {patient.LastName}, you have an appointment scheduled in 3 days on {appointment.BookForDate:dd MMM yyyy}. " +
+                string message = $"Dear {patient.FirstName} {patient.LastName}, you have a follow-up appointment scheduled in 2 days on {appointment.BookForDate:dd MMM yyyy} " +
+                                 $"with Doctor/Nurse {assignedTo.FirstName} {assignedTo.LastName}." +
                                  $"Please confirm or reschedule your appointment by visiting: {link}";
 
                 if (!string.IsNullOrEmpty(patient.PhoneNumber))
@@ -104,9 +108,10 @@ namespace DUTClinicManagement.Services
                 };
 
                 _context.Add(reminder);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
+           
         }
     }
 }

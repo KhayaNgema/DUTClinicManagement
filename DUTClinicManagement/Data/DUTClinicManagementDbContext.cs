@@ -62,6 +62,8 @@ public class DUTClinicManagementDbContext : IdentityDbContext<IdentityUser>
 
     public DbSet<DUTClinicManagement.Models.Nurse> Nurses { get; set; }
 
+    public DbSet<DUTClinicManagement.Models.DeliveryRequest> DeliveryRequests { get; set; }
+
     public DbSet<DUTClinicManagement.Models.Reminder> Reminders { get; set; }
 
     public DbSet<DUTClinicManagement.Models.Paramedic> Paramedics { get; set; }

@@ -90,22 +90,21 @@ namespace DUTClinicManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Doctor, Nurse, System Administrator")]
+        [Authorize(Roles = "Doctor,Nurse,System Administrator")]
         [HttpGet]
         public async Task<IActionResult> FollowUpAppointments()
         {
             var user = await _userManager.GetUserAsync(User);
 
             var appointments = await _context.FollowUpAppointments
-                .Where(a => (a.Status == BookingStatus.Completed || a.Status == BookingStatus.Assigned)
-                 && a.AssignedUserId == user.Id)
-                .Include(a => a.Booking)
-                .ThenInclude(a=>a.CreatedBy)
+                .Where(a =>
+                    (a.Status == BookingStatus.Assigned || a.Status == BookingStatus.Completed) &&
+                    a.AssignedUserId == user.Id)
                 .Include(a => a.CreatedBy)
-                .Include(a => a.Doctor)
-                .Include(a => a.Nurse)
-                .Include(a => a.ModifiedBy)
                 .Include(a => a.AssignedTo)
+                .Include(a => a.Doctor)
+                .Include(a => a.ModifiedBy)
+                .Include(a => a.OrignalBooking)
                 .ToListAsync();
 
             return View(appointments);
@@ -126,7 +125,7 @@ namespace DUTClinicManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.ModifiedBy)
                 .Include(a => a.AssignedTo)
-                .Include(a => a.Booking)
+                .Include(a => a.OrignalBooking)
                 .ToListAsync();
 
             return View(appointments);
@@ -147,7 +146,7 @@ namespace DUTClinicManagement.Controllers
                 .Include(a => a.AssignedTo)
                 .Include(a => a.Doctor)
                 .Include(a => a.ModifiedBy)
-                .Include(a => a.Booking)
+                .Include(a => a.OrignalBooking)
                 .ToListAsync();
 
             return View(appointments);
@@ -163,7 +162,7 @@ namespace DUTClinicManagement.Controllers
 
             var appointment = await _context.FollowUpAppointments
                 .Where(a => a.BookingId == decryptedAppointmentId)
-                .Include(a => a.Booking)
+                .Include(a => a.OrignalBooking)
                 .ThenInclude(b => b.CreatedBy)   
                 .Include(a => a.ModifiedBy)      
                 .Include(a => a.AssignedTo)     
@@ -181,7 +180,7 @@ namespace DUTClinicManagement.Controllers
 
             var viewModel = new FollowUpAppointmentDetailsViewModel
             {
-                PatientId = appointment.Booking.CreatedBy.Id,  
+                PatientId = appointment.OrignalBooking.CreatedBy.Id,  
                 DoctorId = appointment.ModifiedBy?.Id,     
 
                 BookingId = appointment.BookingId,
@@ -193,18 +192,18 @@ namespace DUTClinicManagement.Controllers
                 AdditionalNotes = appointment.AdditionalNotes,
                 BookingReference = appointment.BookingReference,
 
-                DoctorFullNames = appointment.ModifiedBy != null
+                DoctorNurseNames = appointment.ModifiedBy != null
                     ? $"{appointment.ModifiedBy.FirstName} {appointment.ModifiedBy.LastName}"
                     : null,
 
-                PatientFullNames = $"{appointment.Booking.CreatedBy.FirstName} {appointment.Booking.CreatedBy.LastName}",
+                PatientFullNames = $"{appointment.OrignalBooking.CreatedBy.FirstName} {appointment.OrignalBooking.CreatedBy.LastName}",
                 Instructions = appointment.Instructions,
                 MedicalCondition = condition,
                 OriginalBookingId = appointment.OriginalBookingId,
-                PatientEmail = appointment.Booking.CreatedBy.Email,
-                PatientProfilePicture = appointment.Booking.CreatedBy.ProfilePicture,
-                PhoneNumber = appointment.Booking.CreatedBy.PhoneNumber,
-                IdNumber = appointment.Booking.CreatedBy.IdNumber,
+                PatientEmail = appointment.OrignalBooking.CreatedBy.Email,
+                PatientProfilePicture = appointment.OrignalBooking.CreatedBy.ProfilePicture,
+                PhoneNumber = appointment.OrignalBooking.CreatedBy.PhoneNumber,
+                IdNumber = appointment.OrignalBooking.CreatedBy.IdNumber,
 
                 AssignedToFullNames = appointment.AssignedTo != null
                     ? $"{appointment.AssignedTo.FirstName} {appointment.AssignedTo.LastName}"
@@ -438,27 +437,29 @@ namespace DUTClinicManagement.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 var userRoles = await _userManager.GetRolesAsync(user);
 
-                var appointment = await _context.Bookings
+                var originalAppointment = await _context.Bookings
                     .Include(a => a.CreatedBy)
                     .Include(a => a.ModifiedBy)
                     .FirstOrDefaultAsync(a => a.BookingId == viewModel.BookingId);
 
-                if (appointment == null)
-                {
+                if (originalAppointment == null)
                     return NotFound("Original booking not found.");
-                }
 
-                appointment.Status = BookingStatus.Completed;
+                originalAppointment.Status = BookingStatus.Completed;
 
                 UserBaseModel assignedUser = null;
 
                 if (viewModel.NextPersonToSee == NextPersonToSee.Doctor)
                 {
+                    var busyDoctorIds = await _context.Bookings
+                        .Where(b => b.BookForDate == viewModel.BookForDate &&
+                                    b.BookForTimeSlot == viewModel.BookForTimeSlot &&
+                                    b.AssignedUserId != null)
+                        .Select(b => b.AssignedUserId)
+                        .ToListAsync();
+
                     assignedUser = await _context.Doctors
-                        .Where(d => !_context.Bookings.Any(b =>
-                            b.AssignedUserId == d.Id &&
-                            b.BookForDate == viewModel.BookForDate &&
-                            b.BookForTimeSlot == viewModel.BookForTimeSlot))
+                        .Where(d => !busyDoctorIds.Contains(d.Id))
                         .FirstOrDefaultAsync();
 
                     if (assignedUser == null)
@@ -470,11 +471,15 @@ namespace DUTClinicManagement.Controllers
                 }
                 else if (viewModel.NextPersonToSee == NextPersonToSee.Nurse)
                 {
+                    var busyNurseIds = await _context.Bookings
+                        .Where(b => b.BookForDate == viewModel.BookForDate &&
+                                    b.BookForTimeSlot == viewModel.BookForTimeSlot &&
+                                    b.AssignedUserId != null)
+                        .Select(b => b.AssignedUserId)
+                        .ToListAsync();
+
                     assignedUser = await _context.Nurses
-                        .Where(n => !_context.Bookings.Any(b =>
-                            b.AssignedUserId == n.Id &&
-                            b.BookForDate == viewModel.BookForDate &&
-                            b.BookForTimeSlot == viewModel.BookForTimeSlot))
+                        .Where(n => !busyNurseIds.Contains(n.Id))
                         .FirstOrDefaultAsync();
 
                     if (assignedUser == null)
@@ -484,26 +489,25 @@ namespace DUTClinicManagement.Controllers
                         return View(viewModel);
                     }
                 }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid selection for next person to see.");
+                    return View(viewModel);
+                }
 
-                string bookerId = null;
                 string doctorId = null;
                 string nurseId = null;
 
                 if (userRoles.Contains("Doctor"))
-                {
-                    var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Id == user.Id);
-                    doctorId = doctor?.Id;
-                }
+                    doctorId = user.Id;
                 else if (userRoles.Contains("Nurse"))
-                {
-                    var nurse = await _context.Nurses.FirstOrDefaultAsync(n => n.Id == user.Id);
-                    nurseId = nurse?.Id;
-                }
+                    nurseId = user.Id;
 
                 ICollection<string> instructionsList = string.IsNullOrWhiteSpace(viewModel.InstructionsInput)
                     ? null
                     : viewModel.InstructionsInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                                 .Select(i => i.Trim()).ToList();
+                                                 .Select(i => i.Trim())
+                                                 .ToList();
 
                 var newFollowUp = new FollowUpAppointment
                 {
@@ -512,22 +516,22 @@ namespace DUTClinicManagement.Controllers
                     BookForTimeSlot = viewModel.BookForTimeSlot,
                     BookingReference = GenerateBookingReferenceNumber(),
                     AdditionalNotes = viewModel.AdditionalNotes,
-                    CreatedAt = DateTime.Now,
-                    CreatedById = appointment.CreatedById,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedById = originalAppointment.CreatedById,
                     OriginalBookingId = viewModel.BookingId,
-                    LastUpdatedAt = DateTime.Now,
+                    LastUpdatedAt = DateTime.UtcNow,
                     Instructions = instructionsList,
                     MedicalCondition = viewModel.MedicalCondition,
                     Status = BookingStatus.Assigned,
                     UpdatedById = user.Id,
                     AssignedUserId = assignedUser.Id,
-                    DoctorId = doctorId, 
+                    DoctorId = doctorId,
                     NurseId = nurseId,
                     NextPersonToSee = viewModel.NextPersonToSee,
                     Disease = viewModel.Disease
                 };
 
-                _context.Update(appointment);
+                _context.Update(originalAppointment);
                 _context.Add(newFollowUp);
                 await _context.SaveChangesAsync();
 
@@ -554,6 +558,7 @@ namespace DUTClinicManagement.Controllers
                 });
             }
         }
+
 
         private string GenerateBookingReferenceNumber()
         {
@@ -737,7 +742,7 @@ namespace DUTClinicManagement.Controllers
         [Authorize(Roles = "Nurse, Doctor, System Administrator")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatusRedirect(int appointmentId, BookingStatus status, IFormFile XRayImages)
+        public async Task<IActionResult> UpdateStatusRedirect(int appointmentId, BookingStatus status)
         {
             var user = await _userManager.GetUserAsync(User);
 

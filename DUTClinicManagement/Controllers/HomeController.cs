@@ -78,7 +78,7 @@ namespace DUTClinicManagement.Controllers
             }
             else if (roles.Contains("Delivery Personnel"))
             {
-                return View("DelveryGuyDashboard");
+                return View("DeliveryPersonnelDashboard");
             }
             else if (roles.Contains("Pharmacist"))
             {

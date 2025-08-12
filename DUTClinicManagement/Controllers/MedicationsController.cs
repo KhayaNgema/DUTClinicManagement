@@ -69,14 +69,67 @@ namespace HospitalManagement.Controllers
 
             var medications = await _context.MedicationPescription
                 .Include(mp => mp.PrescribedMedication)
-                .Include(mp => mp.Booking).ThenInclude(b => b.CreatedBy)
-                .Where(mp =>(mp.Booking != null && mp.Booking.CreatedBy != null && mp.Booking.CreatedBy.Id == user.Id)
-                )
+                .Include(mp => mp.Booking)
+                .ThenInclude(b => b.CreatedBy)
+                .Include(mp => mp.Booking)
+                .ThenInclude(b => b.Patient)
+                .Where(mp => mp.Booking != null && mp.Booking.CreatedBy != null && mp.Booking.CreatedBy.Id == user.Id)
                 .ToListAsync();
 
+            var medicationViewModels = new List<MedicationCollectionViewModel>();
 
-            return View(medications);
+            foreach (var mp in medications)
+            {
+                var address = mp.Booking?.CreatedBy?.Address;
+
+                string street = null, city = null, postalCode = null, country = null;
+                Province province = default;
+
+                if (!string.IsNullOrWhiteSpace(address))
+                {
+                    var parts = address.Split(',')
+                        .Select(p => p.Trim())
+                        .ToArray();
+
+                    if (parts.Length >= 5)
+                    {
+                        street = parts[0];
+                        city = parts[1];
+
+                        var provinceString = parts[2].Replace(" ", "").Replace("-", "");
+                        if (Enum.TryParse<Province>(provinceString, ignoreCase: true, out var prov))
+                        {
+                            province = prov;
+                        }
+
+                        postalCode = parts[3];
+                        country = parts[4];
+                    }
+                }
+
+                medicationViewModels.Add(new MedicationCollectionViewModel
+                {
+                    MedicationPescriptionId = mp.MedicationPescriptionId, // Keep as in your ViewModel [note spelling: Pescription]
+                    Booking = mp.Booking,
+                    PrescribedMedication = mp.PrescribedMedication.Cast<Medication>().ToList(),
+                    NextCollectionDate = mp.NextCollectionDate,
+                    LastCollectionDate = mp.LastCollectionDate,
+                    Status = mp.Status,
+                    ExpiresAt = mp.ExpiresAt,
+
+                    Street = street,
+                    City = city,
+                    Province = province,
+                    PostalCode = postalCode,
+                    Country = country
+                });
+            }
+
+            return View(medicationViewModels);
         }
+
+
+
 
         [Authorize(Roles = "Pharmacist")]
         [HttpGet]

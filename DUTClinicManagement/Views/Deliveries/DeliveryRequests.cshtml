@@ -1,0 +1,144 @@
+﻿@model IEnumerable<DUTClinicManagement.Models.DeliveryRequest>
+@inject DUTClinicManagement.Interfaces.IEncryptionService encryptionService
+@{
+    ViewData["Title"] = "Medication Delivery Requests";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+}
+<br>
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4"
+         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+                border-radius: 0.75rem;">
+        <div class="d-flex align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </a>
+            <h2 class="mb-0 text-white">Delivery Requests</h2>
+        </div>
+    </div>
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            No delivery requests found.
+        </div>
+    }
+    else
+    {
+        @if (TempData["Message"] != null)
+        {
+            <div id="tempDataMessage" class="alert @(TempData["Message"].ToString().Contains("successfully") ? "alert-success" : "alert-danger")" role="alert">
+                @TempData["Message"]
+                <span class="close" aria-label="Close" style="cursor:pointer;">
+                    <span aria-hidden="true">&times;</span>
+                </span>
+            </div>
+        }
+        <div class="table-responsive">
+            <table id="requestsTable" class="table table-striped table-borderless">
+                <thead class="custom-thead">
+                    <tr style="color:white; background-color: #324260; white-space: nowrap;">
+                        <th>#Ref No.</th>
+                        <th>Patient</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th class="text-end">Package</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var encryptedId = encryptionService.Encrypt(item.DeliveryRequestId);
+                        var modalId = $"prepareDeliveryModal_{item.DeliveryRequestId}";
+                        <tr>
+                            <td>@item.DeliveryRequestReference</td>
+                            <td>@(item.Patient != null ? $"{item.Patient.FirstName} {item.Patient.LastName}" : "N/A")</td>
+                            <td>@item.Address</td>
+                            <td>@item.Status</td>
+                            <td class="text-end">
+                                <button class="btn btn-primary btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#@modalId">
+                                    Prepare Delivery
+                                </button>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@($"{modalId}_Label")" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                               <div class="modal-content rounded-4" style="position: relative;">
+    <div class="modal-header modal-header-custom">
+        <h5 class="modal-title" id="@($"{modalId}_Label")">Medication Delivery Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body d-flex flex-column align-items-center justify-content-center" style="font-size: 18px; padding:25px;">
+        <dl class="row w-100">
+            <dt class="col-sm-3 fw-semibold">Reference Number:</dt>
+            <dd class="col-sm-9 fw-bold fs-4">
+                @item.DeliveryRequestReference
+            </dd>
+            <dt class="col-sm-3 fw-semibold">Medication:</dt>
+            <dd class="col-sm-9">
+                @if (item.MedicationPescription?.PrescribedMedication != null && item.MedicationPescription.PrescribedMedication.Any())
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var med in item.MedicationPescription.PrescribedMedication)
+                        {
+                            <li>- @med.MedicationName (D @med.DosageForm - S @med.Strength - @med.UnitOfMeasure)</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span>N/A</span>
+                }
+            </dd>
+            <dt class="col-sm-3 fw-semibold">QR Code:</dt>
+            <dd class="col-sm-9">
+                @if (item.QrCodeImage != null && item.QrCodeImage.Length > 0)
+                {
+                    var qrBase64 = Convert.ToBase64String(item.QrCodeImage);
+                    <img src="data:image/png;base64,@qrBase64" alt="QR Code" style="max-width:200px;" />
+                }
+                else
+                {
+                    <span>No QR code available</span>
+                }
+            </dd>
+        </dl>
+    </div>
+
+    <form method="post" asp-controller="Deliveries" asp-action="PrepareDelivery" style="position: absolute; bottom: 15px; right: 15px; margin: 0;">
+        <input type="hidden" name="deliveryRequestId" value="@item.DeliveryRequestId" />
+        <button type="submit" class="btn btn-primary">
+            Prepare
+        </button>
+    </form>
+</div>
+
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            setTimeout(function () {
+                $("#tempDataMessage").fadeOut();
+            }, 7000);
+            $(document).on("click", "#tempDataMessage .close", function () {
+                $("#tempDataMessage").fadeOut();
+            });
+            $('#qrSearchInput').on('input', function () {
+                var value = $(this).val().toLowerCase();
+                $('#requestsTable tbody tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+    </script>
+}

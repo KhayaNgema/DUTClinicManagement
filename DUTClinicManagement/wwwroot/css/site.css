@@ -216,10 +216,28 @@ html, body {
     }
 }
 
+@keyframes dash {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
 tbody td {
     border: 1px solid #e57373; 
 }
+.modal-header.modal-header-cancel {
+    background-color: #ff4d4d;
+    color: white;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
 
+.modal-header.modal-header-custom {
+    background-color: #010123;
+    color: white;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
 
 thead.custom-thead th {
     background: linear-gradient(to right, red, #010123) !important;

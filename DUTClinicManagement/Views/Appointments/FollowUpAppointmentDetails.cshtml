@@ -103,15 +103,15 @@
                     <h5 class="section-heading">Assigned Staff</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="fw-semibold text-muted">Doctor</label>
-                            <div class="info-box">@Model.DoctorFullNames</div>
+                            <label class="fw-semibold text-muted">Doctor/Nurse</label>
+                            <div class="info-box">@Model.DoctorNurseNames</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="fw-semibold text-muted">Sent Date</label>
                             <div class="info-box">@Model.CreatedAt.ToString("yyyy/MM/dd HH:mm")</div>
                         </div>
                         <div class="col-md-12 mb-3">
-                            <label class="fw-semibold text-muted">Radiologist</label>
+                            <label class="fw-semibold text-muted">Doctor/Nurse</label>
                             <div class="info-box">@Model.AssignedToFullNames</div>
                         </div>
                     </div>
@@ -166,7 +166,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="fw-semibold text-muted">Last Updated By</label>
-                                <div class="info-box">@Model.DoctorFullNames</div>
+                                <div class="info-box">@Model.DoctorNurseNames</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="fw-semibold text-muted">Last Updated At</label>
@@ -176,14 +176,11 @@
                     </section>
                 }
 
-                @if (ViewBag.Specialization == Specialization.Radiologist)
-                {
                     <div class="d-flex justify-content-end mt-4">
                         <button type="submit" class="btn text-white" style="background-color: #010123; border-color: #010123; padding: 0.75rem 1.5rem; font-size: 1.25rem;">
                             <i class="fa fa-save me-2" style="font-size: 1.5rem;"></i> Save
                         </button>
                     </div>
-                }
             </div>
         </div>
     </div>

@@ -6,34 +6,36 @@
     ViewData["Title"] = "Follow Up Appointments";
     Layout = "~/Views/Shared/_PagesLayout.cshtml";
 }
-<br>
-<div class="container-fluid">
-<div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4" 
-     style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
-            border-radius: 0.75rem;">
-    <div class="d-flex align-items-center">
-        <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
-            <i class="bi bi-chevron-left me-1"></i> Back
-        </a>
-        <h2 class="mb-0 text-white">Appointments</h2>
-    </div>
-    <div>
-        <button class="btn btn-light btn-sm me-2 filter-btn" data-filter="Assigned">
-            <i class="bi bi-clock-history"></i> <span class="btn-text ms-1">Assigned</span>
-        </button>
-        <button class="btn btn-light btn-sm me-2 filter-btn" data-filter="Completed">
-            <i class="bi bi-check-circle" style="color:green;"></i> <span class="btn-text ms-1">Completed</span>
-        </button>
-    </div>
-</div>
-    <div class="d-flex justify-content-between align-items-center mb-4 px-3">
 
-        <div class="input-group w-50">
-            <input type="text" class="form-control" placeholder="Search by student name or enter Booking Reference..." id="qrSearchInput">
+<br />
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4"
+         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+                border-radius: 0.75rem;">
+        <div class="d-flex align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </a>
+            <h2 class="mb-0 text-white">Appointments</h2>
+        </div>
+        <div>
+            <button class="btn btn-light btn-sm me-2 filter-btn" data-filter="Assigned">
+                <i class="bi bi-clock-history"></i> <span class="btn-text ms-1">Assigned</span>
+            </button>
+            <button class="btn btn-light btn-sm me-2 filter-btn" data-filter="Completed">
+                <i class="bi bi-check-circle" style="color:green;"></i> <span class="btn-text ms-1">Completed</span>
+            </button>
         </div>
     </div>
 
-    @if (!Model.Any())
+    <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+        <div class="input-group w-50">
+            <input type="text" class="form-control" placeholder="Search by patient name or enter Booking Reference..." id="qrSearchInput" />
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info text-center">
             No appointments found.
@@ -50,7 +52,7 @@
                         <th class="text-nowrap"><i class="fas fa-calendar-alt me-1"></i> Date</th>
                         <th class="text-nowrap"><i class="fas fa-clock me-1"></i> Time</th>
                         <th class="text-nowrap"><i class="fas fa-heartbeat me-1"></i> Medical Condition</th>
-                        <th class="text-nowrap"><i class="fas fa-heartbeat me-1"></i> Assigned To</th>
+                        <th class="text-nowrap"><i class="fas fa-user me-1"></i> Assigned To</th>
                         <th class="text-nowrap"><i class="fas fa-info-circle me-1"></i> Status</th>
                         @if (User.IsInRole("System Administrator"))
                         {
@@ -64,27 +66,38 @@
                 <tbody>
                     @foreach (var booking in Model)
                     {
+                        if (booking == null)
+                        {
+                            <tr><td colspan="10" class="text-center text-danger">Invalid appointment data.</td></tr>
+                            continue;
+                        }
+
+                        if (booking.BookingId == 0)
+                        {
+                            <tr><td colspan="10" class="text-center text-danger">Invalid Booking ID.</td></tr>
+                            continue;
+                        }
+
                         var encryptedAppointmentId = encryptionService.Encrypt(booking.BookingId);
 
                         <tr class="clickable-row ellipsis" data-id="@encryptedAppointmentId" style="cursor: pointer;">
-                            <td>@booking.BookingReference</td>
-                            <td>@booking.CreatedBy.FirstName @booking.CreatedBy.LastName</td>
+                            <td>@(booking.BookingReference ?? "N/A")</td>
+                            <td>@(booking.CreatedBy?.FirstName ?? "") @(booking.CreatedBy?.LastName ?? "")</td>
                             <td>@booking.BookForDate.ToString("yyyy/MM/dd")</td>
                             <td>@booking.BookForTimeSlot</td>
                             <td>@booking.MedicalCondition</td>
-                            <td>@booking.AssignedTo.FirstName @booking.AssignedTo.LastName</td>
+                            <td>@(booking.AssignedTo?.FirstName ?? "") @(booking.AssignedTo?.LastName ?? "")</td>
                             <td>@booking.Status</td>
                             @if (User.IsInRole("System Administrator"))
                             {
-                                <td>@booking.CreatedBy.FirstName @booking.CreatedBy.LastName</td>
+                                <td>@(booking.CreatedBy?.FirstName ?? "") @(booking.CreatedBy?.LastName ?? "")</td>
                                 <td>@booking.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
-                                <td>@booking.ModifiedBy.FirstName @booking.ModifiedBy.LastName</td>
+                                <td>@(booking.ModifiedBy?.FirstName ?? "") @(booking.ModifiedBy?.LastName ?? "")</td>
                                 <td>@booking.LastUpdatedAt.ToString("yyyy/MM/dd HH:mm")</td>
                             }
                         </tr>
                     }
                 </tbody>
-
             </table>
             <div id="noResultsMessage" class="alert alert-info text-center" style="display:none;">
                 No appointments found.
@@ -109,7 +122,6 @@
             const patientName = row.querySelector("td:nth-child(2)").textContent.toLowerCase();
 
             const statusMatches = (currentStatusFilter === "All") || (status === currentStatusFilter);
-
             const searchMatches = bookingRef.includes(currentSearchQuery) || patientName.includes(currentSearchQuery);
 
             if (statusMatches && searchMatches) {
@@ -154,7 +166,7 @@
         document.querySelectorAll('#appointmentsTable .clickable-row').forEach(row => {
             row.addEventListener('click', function () {
                 const encryptedAppointmentId = this.getAttribute('data-id');
-                const url = '@Url.Action("AppointmentDetails", "Appointments")';
+                const url = '@Url.Action("FollowUpAppointmentDetails", "Appointments")';
                 window.location.href = `${url}?appointmentId=${encodeURIComponent(encryptedAppointmentId)}`;
             });
         });
