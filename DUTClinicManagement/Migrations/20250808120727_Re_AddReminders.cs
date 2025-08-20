@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DUTClinicManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class MassiveUpdate : Migration
+    public partial class Re_AddReminders : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,7 +48,7 @@ namespace DUTClinicManagement.Migrations
                     IsDeleted = table.Column<bool>(type: "bit", nullable: true),
                     IsFirstTimeLogin = table.Column<bool>(type: "bit", nullable: true),
                     DriverLicenseNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DeliveryGuy_LicenseExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeliveryPersonnel_LicenseExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: true),
                     Specialization = table.Column<int>(type: "int", nullable: true),
                     Doctor_LicenseNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
@@ -58,11 +58,15 @@ namespace DUTClinicManagement.Migrations
                     Doctor_Department = table.Column<int>(type: "int", nullable: true),
                     Nurse_LicenseNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LicenseExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Nurse_Department = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsOnDuty = table.Column<bool>(type: "bit", nullable: true),
                     Qualification = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Paramedic_Education = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Paramedic_YearsOfExperience = table.Column<int>(type: "int", nullable: true),
+                    Paramedic_LicenseNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsAvalable = table.Column<bool>(type: "bit", nullable: true),
                     BloodType = table.Column<int>(type: "int", maxLength: 10, nullable: true),
-                    FaceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmergencyContactNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmergencyContactPerson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Pharmacist_Education = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     Pharmacist_Biography = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Department = table.Column<int>(type: "int", nullable: true),
@@ -242,13 +246,14 @@ namespace DUTClinicManagement.Migrations
                     BookingReference = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AdditionalNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    AppointmentType = table.Column<int>(type: "int", nullable: false),
                     Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    NurseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     DoctorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     OriginalBookingId = table.Column<int>(type: "int", nullable: true),
-                    ScannerImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BodyParts = table.Column<int>(type: "int", nullable: true),
-                    BookingAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Instructions = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Instructions = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NextPersonToSee = table.Column<int>(type: "int", nullable: true),
+                    Disease = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -268,8 +273,12 @@ namespace DUTClinicManagement.Migrations
                         name: "FK_Bookings_AspNetUsers_DoctorId",
                         column: x => x.DoctorId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Bookings_AspNetUsers_NurseId",
+                        column: x => x.NurseId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Bookings_AspNetUsers_UpdatedById",
                         column: x => x.UpdatedById,
@@ -286,6 +295,76 @@ namespace DUTClinicManagement.Migrations
                         column: x => x.OriginalBookingId,
                         principalTable: "Bookings",
                         principalColumn: "BookingId",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Conversations",
+                columns: table => new
+                {
+                    ConversationId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PatientId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ResponderId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsOpen = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Conversations", x => x.ConversationId);
+                    table.ForeignKey(
+                        name: "FK_Conversations_AspNetUsers_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Conversations_AspNetUsers_ResponderId",
+                        column: x => x.ResponderId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmergencyRequests",
+                columns: table => new
+                {
+                    RequestId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PatientId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AssignedParamedicIds = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ParamedicId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    EmergencyDetails = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RequestTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RequestStatus = table.Column<int>(type: "int", nullable: true),
+                    Priority = table.Column<int>(type: "int", nullable: true),
+                    ReferenceNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PatientLatitude = table.Column<double>(type: "float", nullable: false),
+                    PatientLongitude = table.Column<double>(type: "float", nullable: false),
+                    ParamedicLatitude = table.Column<double>(type: "float", nullable: false),
+                    ParamedicLongitude = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmergencyRequests", x => x.RequestId);
+                    table.ForeignKey(
+                        name: "FK_EmergencyRequests_AspNetUsers_ModifiedById",
+                        column: x => x.ModifiedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_EmergencyRequests_AspNetUsers_ParamedicId",
+                        column: x => x.ParamedicId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_EmergencyRequests_AspNetUsers_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                 });
 
@@ -456,6 +535,49 @@ namespace DUTClinicManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Feedbacks",
+                columns: table => new
+                {
+                    FeedbackId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PatientId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    DoctorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NurseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    CommunicationRating = table.Column<int>(type: "int", nullable: false),
+                    ProfessionalismRating = table.Column<int>(type: "int", nullable: false),
+                    CareSatisfactionRating = table.Column<int>(type: "int", nullable: false),
+                    Comments = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SubmittedOn = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Feedbacks", x => x.FeedbackId);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_AspNetUsers_DoctorId",
+                        column: x => x.DoctorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_AspNetUsers_NurseId",
+                        column: x => x.NurseId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_AspNetUsers_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "BookingId",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MedicationPescription",
                 columns: table => new
                 {
@@ -501,6 +623,59 @@ namespace DUTClinicManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Reminders",
+                columns: table => new
+                {
+                    ReminderId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    FollowUpAppointmentBookingId = table.Column<int>(type: "int", nullable: false),
+                    SentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReminderMessage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reminders", x => x.ReminderId);
+                    table.ForeignKey(
+                        name: "FK_Reminders_Bookings_FollowUpAppointmentBookingId",
+                        column: x => x.FollowUpAppointmentBookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "BookingId",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Messages",
+                columns: table => new
+                {
+                    MessageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Messages", x => x.MessageId);
+                    table.ForeignKey(
+                        name: "FK_Messages_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Messages_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
+                        principalColumn: "ConversationId",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MedicalHistorys",
                 columns: table => new
                 {
@@ -521,7 +696,8 @@ namespace DUTClinicManagement.Migrations
                     Vitals = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LabResults = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DoctorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    DoctorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NurseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UntilDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CollectAfterCount = table.Column<int>(type: "int", nullable: true),
                     CollectionInterval = table.Column<int>(type: "int", nullable: true),
@@ -545,8 +721,12 @@ namespace DUTClinicManagement.Migrations
                         name: "FK_MedicalHistorys_AspNetUsers_DoctorId",
                         column: x => x.DoctorId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_MedicalHistorys_AspNetUsers_NurseId",
+                        column: x => x.NurseId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_MedicalHistorys_AspNetUsers_PatientId",
                         column: x => x.PatientId,
@@ -564,6 +744,44 @@ namespace DUTClinicManagement.Migrations
                         column: x => x.PatientMedicalHistoryId,
                         principalTable: "PatientMedicalHistories",
                         principalColumn: "PatientMedicalHistoryId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DeliveryRequests",
+                columns: table => new
+                {
+                    DeliveryRequestId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PatientId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MedicationPescriptionId = table.Column<int>(type: "int", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    DeliveryRequestReference = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    QrCodeImage = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeliveryRequests", x => x.DeliveryRequestId);
+                    table.ForeignKey(
+                        name: "FK_DeliveryRequests_AspNetUsers_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_DeliveryRequests_AspNetUsers_UpdatedById",
+                        column: x => x.UpdatedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_DeliveryRequests_MedicationPescription_MedicationPescriptionId",
+                        column: x => x.MedicationPescriptionId,
+                        principalTable: "MedicationPescription",
+                        principalColumn: "MedicationPescriptionId",
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -735,6 +953,11 @@ namespace DUTClinicManagement.Migrations
                 column: "DoctorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Bookings_NurseId",
+                table: "Bookings",
+                column: "NurseId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_OriginalBookingId",
                 table: "Bookings",
                 column: "OriginalBookingId");
@@ -750,6 +973,66 @@ namespace DUTClinicManagement.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Conversations_PatientId",
+                table: "Conversations",
+                column: "PatientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Conversations_ResponderId",
+                table: "Conversations",
+                column: "ResponderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryRequests_MedicationPescriptionId",
+                table: "DeliveryRequests",
+                column: "MedicationPescriptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryRequests_PatientId",
+                table: "DeliveryRequests",
+                column: "PatientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryRequests_UpdatedById",
+                table: "DeliveryRequests",
+                column: "UpdatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmergencyRequests_ModifiedById",
+                table: "EmergencyRequests",
+                column: "ModifiedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmergencyRequests_ParamedicId",
+                table: "EmergencyRequests",
+                column: "ParamedicId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmergencyRequests_PatientId",
+                table: "EmergencyRequests",
+                column: "PatientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_BookingId",
+                table: "Feedbacks",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_DoctorId",
+                table: "Feedbacks",
+                column: "DoctorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_NurseId",
+                table: "Feedbacks",
+                column: "NurseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_PatientId",
+                table: "Feedbacks",
+                column: "PatientId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MedicalHistorys_CreatedById",
                 table: "MedicalHistorys",
                 column: "CreatedById");
@@ -758,6 +1041,11 @@ namespace DUTClinicManagement.Migrations
                 name: "IX_MedicalHistorys_DoctorId",
                 table: "MedicalHistorys",
                 column: "DoctorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MedicalHistorys_NurseId",
+                table: "MedicalHistorys",
+                column: "NurseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MedicalHistorys_PatientId",
@@ -835,6 +1123,16 @@ namespace DUTClinicManagement.Migrations
                 column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Messages_ConversationId",
+                table: "Messages",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_SenderId",
+                table: "Messages",
+                column: "SenderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PatientMedicalHistories_PatientId",
                 table: "PatientMedicalHistories",
                 column: "PatientId");
@@ -848,6 +1146,11 @@ namespace DUTClinicManagement.Migrations
                 name: "IX_Payments_PaymentMadeById",
                 table: "Payments",
                 column: "PaymentMadeById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reminders_FollowUpAppointmentBookingId",
+                table: "Reminders",
+                column: "FollowUpAppointmentBookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Rooms_CreatedById",
@@ -888,13 +1191,28 @@ namespace DUTClinicManagement.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "DeliveryRequests");
+
+            migrationBuilder.DropTable(
+                name: "EmergencyRequests");
+
+            migrationBuilder.DropTable(
+                name: "Feedbacks");
+
+            migrationBuilder.DropTable(
                 name: "MedicationInventory");
 
             migrationBuilder.DropTable(
                 name: "MedicationMedicationPescription");
 
             migrationBuilder.DropTable(
+                name: "Messages");
+
+            migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "Reminders");
 
             migrationBuilder.DropTable(
                 name: "Rooms");
@@ -910,6 +1228,9 @@ namespace DUTClinicManagement.Migrations
 
             migrationBuilder.DropTable(
                 name: "Medications");
+
+            migrationBuilder.DropTable(
+                name: "Conversations");
 
             migrationBuilder.DropTable(
                 name: "DeviceInfos");

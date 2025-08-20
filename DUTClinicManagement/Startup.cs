@@ -122,8 +122,10 @@ public class Startup
         services.AddScoped<FileUploadService>();
         services.AddScoped<RandomPasswordGeneratorService>();
         services.AddScoped<EmailService>();
+        services.AddScoped<EmergencyContactService>();
         services.AddScoped<QrCodeService>();
         services.AddScoped<FeedbackService>();
+        services.AddScoped<ReceiveMedication>();
         services.AddScoped<ParamedicAssignmentService>();
         services.AddSignalR();
         services.AddScoped<SmsService>();
@@ -224,7 +226,7 @@ public class Startup
         app.UseSerilogRequestLogging();
 
         RecurringJob.AddOrUpdate<ReminderService>(
-            "send-reminders",
+            "send-follow-up-reminders",
             service => service.SendRemindersAsync(),
             Cron.Minutely);
 

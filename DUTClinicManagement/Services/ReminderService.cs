@@ -33,81 +33,100 @@ namespace DUTClinicManagement.Services
 
         public async Task SendRemindersAsync()
         {
-            var today = DateTime.Today;
-            var targetDate = today.AddDays(2);
-
-            var appointments = await _context.FollowUpAppointments
-                .Include(f => f.OrignalBooking)
-                    .ThenInclude(b => b.Patient)
-                .Include(b => b.AssignedTo)
-                .Where(f => f.BookForDate.Date == targetDate.Date) 
-                .ToListAsync();
-
-            foreach (var appointment in appointments)
+            try
             {
-                var patient = appointment.OrignalBooking?.Patient;
-                var assignedTo = appointment.AssignedTo;
+                var today = DateTime.Today;
+                var targetDates = new[] { today.AddDays(5), today.AddDays(2), today };
 
-                if (patient == null)
-                    continue;
+                var appointments = await _context.FollowUpAppointments
+                    .Include(f => f.OrignalBooking)
+                        .ThenInclude(o => o.CreatedBy)
+                    .Include(f => f.AssignedTo)
+                    .Where(f => targetDates.Contains(f.BookForDate.Date))
+                    .ToListAsync();
 
-                if (!DiseaseToDiseaseTypeMap.Map.TryGetValue(appointment.Disease, out var diseaseType))
-                    continue;
-
-                if (diseaseType != DiseaseType.Chronic)
-                    continue;
-
-                bool reminderExists = await _context.Reminders
-                    .AnyAsync(r =>
-                        r.BookingId == appointment.BookingId &&
-                        r.Status == ReminderStatus.Sent &&
-                        r.ExpiryDate.Date == targetDate.Date);
-
-                if (reminderExists)
-                    continue;
-
-                string link = "https://localhost:7175/Appointments/MyAppointments";
-                string message =
-                    $"Dear {patient.FirstName} {patient.LastName}, you have a follow-up appointment scheduled in 2 days on {appointment.BookForDate:dd MMM yyyy} " +
-                    $"with Doctor/Nurse {assignedTo.FirstName} {assignedTo.LastName}. " +
-                    $"Please confirm or reschedule your appointment by visiting: {link}";
-
-                if (!string.IsNullOrEmpty(patient.PhoneNumber))
+                foreach (var appointment in appointments)
                 {
-                    try
+                    var patient = appointment.CreatedBy;
+                    var assignedTo = appointment.AssignedTo;
+                    if (patient == null)
+                        continue;
+                    if (assignedTo == null)
+                        continue;
+
+                    bool hasUpcomingAppointments = await _context.FollowUpAppointments
+                        .AnyAsync(f => f.OrignalBooking.PatientId == patient.Id &&
+                                       f.BookForDate.Date >= today);
+                    if (!hasUpcomingAppointments)
+                        continue;
+
+                    if (!DiseaseToDiseaseTypeMap.Map.TryGetValue(appointment.Disease, out var diseaseType))
+                        continue;
+                    if (diseaseType != DiseaseType.Chronic)
+                        continue;
+
+                    bool reminderExists = await _context.Reminders
+                        .AnyAsync(r =>
+                            r.FollowUpAppointmentBookingId == appointment.BookingId &&
+                            r.Status == ReminderStatus.Sent &&
+                            r.ExpiryDate.Date == appointment.BookForDate.Date);
+                    if (reminderExists)
+                        continue;
+
+                    string link = "https://localhost:7175/Appointments/MyAppointments";
+                    var daysLeft = (appointment.BookForDate.Date - today).Days;
+                    string dayDescription = daysLeft switch
                     {
-                        await _smsService.SendSmsAsync(patient.PhoneNumber, message);
+                        5 => "in 5 days",
+                        2 => "in 2 days",
+                        0 => "today",
+                        _ => $"on {appointment.BookForDate:dd MMM yyyy}"
+                    };
+
+                    string message =
+                        $"Dear {patient.FirstName} {patient.LastName}, you have a follow-up appointment scheduled {dayDescription} on {appointment.BookForDate:dd MMM yyyy} " +
+                        $"with Doctor/Nurse {assignedTo.FirstName} {assignedTo.LastName}. " +
+                        $"Please confirm or reschedule your appointment by visiting: {link}";
+
+                    if (!string.IsNullOrEmpty(patient.PhoneNumber))
+                    {
+                        try
+                        {
+                            await _smsService.SendSmsAsync(patient.PhoneNumber, message);
+                        }
+                        catch { }
                     }
-                    catch { }
+
+                    if (!string.IsNullOrEmpty(patient.Email))
+                    {
+                        try
+                        {
+                            await _emailService.SendEmailAsync(
+                                to: patient.Email,
+                                subject: "Follow-up Appointment Reminder",
+                                body: message,
+                                senderName: "DUT Clinic"
+                            );
+                        }
+                        catch { }
+                    }
+
+                    var reminder = new Reminder
+                    {
+                        SentDate = DateTime.Now,
+                        ExpiryDate = appointment.BookForDate.Date,
+                        Status = ReminderStatus.Sent,
+                        ReminderMessage = message,
+                        FollowUpAppointmentBookingId = appointment.BookingId
+                    };
+                    _context.Reminders.Add(reminder);
                 }
 
-                if (!string.IsNullOrEmpty(patient.Email))
-                {
-                    try
-                    {
-                        await _emailService.SendEmailAsync(
-                            to: patient.Email,
-                            subject: "Follow-up Appointment Reminder",
-                            body: message,
-                            senderName: "DUT Clinic"
-                        );
-                    }
-                    catch { }
-                }
-
-                var reminder = new Reminder
-                {
-                    BookingId = appointment.BookingId,
-                    SentDate = DateTime.Now,
-                    ExpiryDate = targetDate,
-                    Status = ReminderStatus.Sent,
-                    ReminderMessage = message
-                };
-
-                _context.Reminders.Add(reminder);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync(); // ✅ Save once at the end
+            catch (Exception)
+            {
+            }
         }
     }
 }

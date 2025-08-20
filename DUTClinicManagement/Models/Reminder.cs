@@ -7,18 +7,17 @@ namespace DUTClinicManagement.Models
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ReminderId { get; set; }
-        
-        public int BookingId { get; set; }
+
+        public int FollowUpAppointmentBookingId { get; set; }
+
+        [ForeignKey(nameof(FollowUpAppointmentBookingId))]
         public virtual FollowUpAppointment FollowUpAppointment { get; set; }
 
         public DateTime SentDate { get; set; }
-
         public string ReminderMessage { get; set; }
-
         public DateTime ExpiryDate { get; set; }
-
         public ReminderStatus Status { get; set; }
-    } 
+    }
 
     public enum ReminderStatus
     { 

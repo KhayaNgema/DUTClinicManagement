@@ -182,7 +182,7 @@ namespace DUTClinicManagement.Controllers
             {
                 PatientId = appointment.OrignalBooking.CreatedBy.Id,  
                 DoctorId = appointment.ModifiedBy?.Id,     
-
+                Disease = appointment.Disease,
                 BookingId = appointment.BookingId,
                 CreatedAt = appointment.CreatedAt,
                 LastUpdatedAt = appointment.LastUpdatedAt,
@@ -391,7 +391,6 @@ namespace DUTClinicManagement.Controllers
                 PatientId = patient.Id,
                 AdditionalNotes = appointment.AdditionalNotes,
                 BookForDate = selectedDate,
-                MedicalCondition = appointment.MedicalCondition,
                 BookingId = decryptedAppointmentId,
                 Address = patient.Address,
                 AlternatePhoneNumber = patient.AlternatePhoneNumber,
@@ -521,14 +520,16 @@ namespace DUTClinicManagement.Controllers
                     OriginalBookingId = viewModel.BookingId,
                     LastUpdatedAt = DateTime.UtcNow,
                     Instructions = instructionsList,
-                    MedicalCondition = viewModel.MedicalCondition,
+                    MedicalCondition = originalAppointment.MedicalCondition,
                     Status = BookingStatus.Assigned,
                     UpdatedById = user.Id,
                     AssignedUserId = assignedUser.Id,
                     DoctorId = doctorId,
                     NurseId = nurseId,
                     NextPersonToSee = viewModel.NextPersonToSee,
-                    Disease = viewModel.Disease
+                    Disease = viewModel.Disease,
+                    AppointmentType = AppointmentType.Physical,
+                    InstructionsInput = viewModel.InstructionsInput
                 };
 
                 _context.Update(originalAppointment);
@@ -546,6 +547,20 @@ namespace DUTClinicManagement.Controllers
             }
             catch (Exception ex)
             {
+                var diseaseList = Enum.GetValues(typeof(Disease))
+                    .Cast<Disease>()
+                    .Select(d => new SelectListItem
+                    {
+                        Text = d.GetType()
+                                .GetMember(d.ToString())[0]
+                                .GetCustomAttribute<DisplayAttribute>()?.Name ?? d.ToString(),
+                        Value = d.ToString()
+                    })
+                    .ToList();
+
+                ViewBag.Diseases = diseaseList;
+
+
                 return Json(new
                 {
                     success = false,

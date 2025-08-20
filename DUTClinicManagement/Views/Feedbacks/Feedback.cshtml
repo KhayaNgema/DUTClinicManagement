@@ -7,15 +7,37 @@
 
 <head>
     <style>
-.small-stars .star-rating-input {
-    font-size: 1.8rem; 
-}
+        .small-stars .star-rating-input {
+            font-size: 1.8rem;
+        }
+
+        .filter-container {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+
+        .chart-row {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-container {
+            flex: 1;
+            min-width: 300px;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<br>
+
+<br />
 <div class="container-fluid">
-    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4" 
-         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4"
+        style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
                 border-radius: 0.75rem;">
         <div class="d-flex align-items-center">
             <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
@@ -33,8 +55,21 @@
     }
     else
     {
-        <div class="table-responsive mb-5">
-            <table class="table table-striped table-borderless">
+        <!-- Search & Date Filters -->
+        <div class="filter-container">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search staff or comments..." style="max-width: 250px;" />
+            <label>From:</label>
+            <input type="date" id="fromDate" class="form-control" style="max-width: 180px;" />
+            <label>To:</label>
+            <input type="date" id="toDate" class="form-control" style="max-width: 180px;" />
+            <button id="clearFilters" class="btn btn-outline-dark btn-md">Clear</button>
+            <button id="showDashboardBtn" class="btn btn-secondary btn-md">Show in dashboards</button>
+            <button id="showTableBtn" class="btn btn-outline-secondary btn-md" style="display:none;">Show Table</button>
+        </div>
+
+        <!-- Feedback Table -->
+        <div class="table-responsive mb-5" id="feedbackTableContainer">
+            <table class="table table-striped table-borderless" id="feedbackTable">
                 <thead class="custom-thead text-nowrap">
                     <tr>
                         <th>Staff</th>
@@ -50,31 +85,305 @@
                     @foreach (var feedback in Model)
                     {
                         <tr>
-                            <td>@(feedback.StaffName)</td>
+                            <td>@feedback.StaffName</td>
                             <td>@feedback.Occupation</td>
-<td>
-<div class="small-stars">
-    @await Html.PartialAsync("_RatingStarsTable", feedback.CommunicationRating)
-</div>
-</td>
-
-<td>
-  <div class="small-stars">
-    @await Html.PartialAsync("_RatingStarsTable", feedback.ProfessionalismRating)
-</div>
-</td>
-<td>
-  <div class="small-stars">
-    @await Html.PartialAsync("_RatingStarsTable", feedback.CareSatisfactionRating)
-</div>
-</td>
-
+                            <td>
+                                <div class="small-stars">
+                                    @await Html.PartialAsync("_RatingStarsTable", feedback.CommunicationRating)
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small-stars">
+                                    @await Html.PartialAsync("_RatingStarsTable", feedback.ProfessionalismRating)
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small-stars">
+                                    @await Html.PartialAsync("_RatingStarsTable", feedback.CareSatisfactionRating)
+                                </div>
+                            </td>
                             <td>@feedback.Comments</td>
-                            <td>@feedback.SubmittedOn.ToString("yyyy/MM/dd HH:mm")</td>
+                            <td>@feedback.SubmittedOn.ToString("yyyy/MM/dd")</td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Charts container, hidden initially -->
+        <div class="chart-row" id="chartsContainer" style="display:none;">
+            <div class="chart-container">
+                <canvas id="lineChart" height="150"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="barChart" height="150"></canvas>
+            </div>
+        </div>
     }
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("searchInput");
+        const fromDate = document.getElementById("fromDate");
+        const toDate = document.getElementById("toDate");
+        const clearBtn = document.getElementById("clearFilters");
+        const showDashboardBtn = document.getElementById("showDashboardBtn");
+        const showTableBtn = document.getElementById("showTableBtn");
+        const tableContainer = document.getElementById("feedbackTableContainer");
+        const chartsContainer = document.getElementById("chartsContainer");
+        const table = document.getElementById("feedbackTable");
+        const rows = table.getElementsByTagName("tr");
+
+        var feedbackDataFull = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(f => new {
+            StaffName = f.StaffName,
+            Occupation = f.Occupation,
+            SubmittedOn = f.SubmittedOn.ToString("yyyy/MM/dd"),
+            CommunicationRating = f.CommunicationRating,
+            ProfessionalismRating = f.ProfessionalismRating,
+            CareSatisfactionRating = f.CareSatisfactionRating,
+            Comments = f.Comments
+        })));
+
+        let filteredData = feedbackDataFull.slice();
+
+        function filterContent() {
+            const searchValue = searchInput.value.toLowerCase();
+            const from = fromDate.value ? new Date(fromDate.value) : null;
+            const to = toDate.value ? new Date(toDate.value) : null;
+            
+            for (let i = 1; i < rows.length; i++) {
+                let cells = rows[i].getElementsByTagName("td");
+                if (cells.length < 7) continue;
+                const staffName = cells[0].innerText.toLowerCase();
+                const comments = cells[5].innerText.toLowerCase();
+                const dateText = cells[6].innerText;
+                const rowDate = new Date(dateText);
+                let matchesSearch = staffName.includes(searchValue) || comments.includes(searchValue);
+                let matchesDate = true;
+                if (from && rowDate < from) matchesDate = false;
+                if (to && rowDate > to) matchesDate = false;
+                if (matchesSearch && matchesDate) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+
+            filteredData = feedbackDataFull.filter(fb => {
+                const fbDate = new Date(fb.SubmittedOn);
+                const matchesDate = (!from || fbDate >= from) && (!to || fbDate <= to);
+                const matchesSearch = fb.StaffName.toLowerCase().includes(searchValue) ||
+                    fb.Comments.toLowerCase().includes(searchValue);
+                return matchesDate && matchesSearch;
+            });
+
+            updateCharts(filteredData);
+        }
+
+        searchInput.addEventListener("keyup", filterContent);
+        fromDate.addEventListener("change", filterContent);
+        toDate.addEventListener("change", filterContent);
+
+        clearBtn.addEventListener("click", function () {
+            searchInput.value = "";
+            fromDate.value = "";
+            toDate.value = "";
+            filterContent();
+        });
+
+        let lineChart, barChart;
+
+
+        function updateCharts(data) {
+
+            let ratingByDate = {};
+
+            data.forEach(fb => {
+                if (!ratingByDate[fb.SubmittedOn]) {
+                    ratingByDate[fb.SubmittedOn] = { communication: [], professionalism: [], care: [] };
+                }
+                ratingByDate[fb.SubmittedOn].communication.push(fb.CommunicationRating);
+                ratingByDate[fb.SubmittedOn].professionalism.push(fb.ProfessionalismRating);
+                ratingByDate[fb.SubmittedOn].care.push(fb.CareSatisfactionRating);
+            });
+
+            const dates = [];
+            const communicationRatings = [];
+            const professionalismRatings = [];
+            const careSatisfactionRatings = [];
+
+            Object.keys(ratingByDate).sort().forEach(date => {
+                let comms = ratingByDate[date].communication;
+                let profs = ratingByDate[date].professionalism;
+                let cares = ratingByDate[date].care;
+
+                dates.push(date);
+                communicationRatings.push(comms.reduce((a, b) => a + b, 0) / comms.length);
+                professionalismRatings.push(profs.reduce((a, b) => a + b, 0) / profs.length);
+                careSatisfactionRatings.push(cares.reduce((a, b) => a + b, 0) / cares.length);
+            });
+
+            if (lineChart) {
+                lineChart.data.labels = dates;
+                lineChart.data.datasets[0].data = communicationRatings;
+                lineChart.data.datasets[1].data = professionalismRatings;
+                lineChart.data.datasets[2].data = careSatisfactionRatings;
+                lineChart.update();
+            }
+
+            const starCounts = {
+                Communication: [0, 0, 0, 0, 0],
+                Professionalism: [0, 0, 0, 0, 0],
+                CareSatisfaction: [0, 0, 0, 0, 0]
+            };
+
+            data.forEach(fb => {
+                if (fb.CommunicationRating >= 1 && fb.CommunicationRating <= 5) {
+                    starCounts.Communication[fb.CommunicationRating - 1]++;
+                }
+                if (fb.ProfessionalismRating >= 1 && fb.ProfessionalismRating <= 5) {
+                    starCounts.Professionalism[fb.ProfessionalismRating - 1]++;
+                }
+                if (fb.CareSatisfactionRating >= 1 && fb.CareSatisfactionRating <= 5) {
+                    starCounts.CareSatisfaction[fb.CareSatisfactionRating - 1]++;
+                }
+            });
+
+            if (barChart) {
+                barChart.data.datasets[0].data = starCounts.Communication;
+                barChart.data.datasets[1].data = starCounts.Professionalism;
+                barChart.data.datasets[2].data = starCounts.CareSatisfaction;
+                barChart.update();
+            }
+        }
+
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Communication',
+                        data: [],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Professionalism',
+                        data: [],
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Care Satisfaction',
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Average Rating'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                interaction: { mode: 'nearest', intersect: false }
+            }
+        });
+
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+                datasets: [
+                    {
+                        label: 'Communication',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Professionalism',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Care Satisfaction',
+                        data: [],
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgb(75, 192, 192)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        title: { display: true, text: 'Count of Ratings' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Stars' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+
+        updateCharts(filteredData);
+
+        showDashboardBtn.addEventListener("click", function () {
+            tableContainer.style.display = "none";
+            chartsContainer.style.display = "flex";
+            showDashboardBtn.style.display = "none";
+            showTableBtn.style.display = "inline-block";
+            filterContent();
+        });
+
+        showTableBtn.addEventListener("click", function () {
+            tableContainer.style.display = "block";
+            chartsContainer.style.display = "none";
+            showDashboardBtn.style.display = "inline-block";
+            showTableBtn.style.display = "none";
+        });
+    });
+</script>

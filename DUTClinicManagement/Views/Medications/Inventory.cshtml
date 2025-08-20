@@ -64,32 +64,35 @@ else
                         <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
                         <td>@Html.DisplayFor(modelItem => item.Availability)</td>
 <td>
-@if (item.StockLevel == StockLevel.High)
-{
-    <span class="badge text-bg-success w-100 rounded-0 d-block text-center">
-        <i class="fas fa-arrow-up me-1"></i> @item.StockLevel
-    </span>
-}
-else if (item.StockLevel == StockLevel.Moderate)
-{
-    <span class="badge text-bg-primary w-100 rounded-0 d-block text-center">
-        <i class="fas fa-check-circle me-1"></i> @item.StockLevel
-    </span>
-}
-else if (item.StockLevel == StockLevel.Low)
-{
-    <span class="badge text-bg-warning text-dark w-100 rounded-0 d-block text-center">
-        <i class="fas fa-exclamation-triangle me-1"></i> @item.StockLevel
-    </span>
-}
-else if (item.StockLevel == StockLevel.Critical)
-{
-    <span class="badge text-bg-danger w-100 rounded-0 d-block text-center">
-        <i class="fas fa-times-circle me-1"></i> @item.StockLevel
-    </span>
-}
+    @{
+        string badgeClass;
+        string iconClass;
+        string levelText;
 
+        if (item.Quantity < 5)
+        {
+            levelText = "Critical";
+            badgeClass = "text-bg-danger";
+            iconClass = "fas fa-times-circle";
+        }
+        else if (item.Quantity >= 5 && item.Quantity < 10)
+        {
+            levelText = "Moderate";
+            badgeClass = "text-bg-primary";
+            iconClass = "fas fa-check-circle";
+        }
+        else 
+        {
+            levelText = "High";
+            badgeClass = "text-bg-success";
+            iconClass = "fas fa-arrow-up";
+        }
+    }
+    <span class="badge @badgeClass w-100 rounded-0 d-block text-center">
+        <i class="@iconClass me-1"></i> @levelText
+    </span>
 </td>
+
 
                     </tr>
                 }

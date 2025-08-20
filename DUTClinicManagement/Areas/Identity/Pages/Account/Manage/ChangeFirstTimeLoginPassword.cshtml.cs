@@ -156,7 +156,7 @@ namespace DUTClinicManagement.Areas.Identity.Pages.Account.Manage
 
             await _activityLogger.Log($"Changed temporal password at first time login", user.Id);
 
-            return RedirectToPage("/Account/Login");
+            return RedirectToPage("/");
         }
     }
 }

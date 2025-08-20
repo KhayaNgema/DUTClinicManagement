@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DUTClinicManagement.Migrations
 {
     [DbContext(typeof(DUTClinicManagementDbContext))]
-    [Migration("20250803115556_AddFollowUp")]
-    partial class AddFollowUp
+    [Migration("20250820124845_UpdateReminder")]
+    partial class UpdateReminder
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -139,6 +139,85 @@ namespace DUTClinicManagement.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("DUTClinicManagement.Models.Conversation", b =>
+                {
+                    b.Property<int>("ConversationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConversationId"));
+
+                    b.Property<bool>("IsOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ResponderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ConversationId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("ResponderId");
+
+                    b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.DeliveryRequest", b =>
+                {
+                    b.Property<int>("DeliveryRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DeliveryRequestId"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeliveryRequestReference")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MedicationPescriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("QrCodeImage")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("DeliveryRequestId");
+
+                    b.HasIndex("MedicationPescriptionId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("DeliveryRequests");
+                });
+
             modelBuilder.Entity("DUTClinicManagement.Models.DeviceInfo", b =>
                 {
                     b.Property<int>("DeviceInfoId")
@@ -189,6 +268,121 @@ namespace DUTClinicManagement.Migrations
                     b.HasKey("DeviceInfoId");
 
                     b.ToTable("DeviceInfos");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.EmergencyRequest", b =>
+                {
+                    b.Property<int>("RequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestId"));
+
+                    b.PrimitiveCollection<string>("AssignedParamedicIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmergencyDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ModifiedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ParamedicId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("ParamedicLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ParamedicLongitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("PatientLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("PatientLongitude")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RequestStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("RequestId");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("ParamedicId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("EmergencyRequests");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.Feedback", b =>
+                {
+                    b.Property<int>("FeedbackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CareSatisfactionRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CommunicationRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DoctorId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("NurseId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ProfessionalismRating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmittedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("FeedbackId");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("NurseId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("DUTClinicManagement.Models.MedicalHistory", b =>
@@ -513,35 +707,39 @@ namespace DUTClinicManagement.Migrations
                     b.ToTable("MedicationPescription");
                 });
 
-            modelBuilder.Entity("DUTClinicManagement.Models.MedicationReminder", b =>
+            modelBuilder.Entity("DUTClinicManagement.Models.Message", b =>
                 {
-                    b.Property<int>("ReminderId")
+                    b.Property<int>("MessageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReminderId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageId"));
 
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MedicationPescriptionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReminderMessage")
+                    b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
-                    b.Property<DateTime>("SentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
+                    b.Property<int>("ConversationId")
                         .HasColumnType("int");
 
-                    b.HasKey("ReminderId");
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
 
-                    b.HasIndex("MedicationPescriptionId");
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.ToTable("MedicationReminders");
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("DUTClinicManagement.Models.PatientMedicalHistory", b =>
@@ -612,6 +810,37 @@ namespace DUTClinicManagement.Migrations
                     b.HasIndex("PaymentMadeById");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.Reminder", b =>
+                {
+                    b.Property<int>("ReminderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReminderId"));
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FollowUpAppointmentBookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReminderMessage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReminderId");
+
+                    b.HasIndex("FollowUpAppointmentBookingId");
+
+                    b.ToTable("Reminders");
                 });
 
             modelBuilder.Entity("DUTClinicManagement.Models.Room", b =>
@@ -921,11 +1150,17 @@ namespace DUTClinicManagement.Migrations
                 {
                     b.HasBaseType("DUTClinicManagement.Models.Booking");
 
+                    b.Property<int>("Disease")
+                        .HasColumnType("int");
+
                     b.Property<string>("DoctorId")
                         .HasColumnType("nvarchar(450)");
 
                     b.PrimitiveCollection<string>("Instructions")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NextPersonToSee")
+                        .HasColumnType("int");
 
                     b.Property<string>("NurseId")
                         .HasColumnType("nvarchar(450)");
@@ -1105,6 +1340,39 @@ namespace DUTClinicManagement.Migrations
                     b.HasDiscriminator().HasValue("Nurse");
                 });
 
+            modelBuilder.Entity("DUTClinicManagement.Models.Paramedic", b =>
+                {
+                    b.HasBaseType("DUTClinicManagement.Models.UserBaseModel");
+
+                    b.Property<string>("Education")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvalable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("int");
+
+                    b.ToTable("AspNetUsers", t =>
+                        {
+                            t.Property("Education")
+                                .HasColumnName("Paramedic_Education");
+
+                            t.Property("LicenseNumber")
+                                .HasColumnName("Paramedic_LicenseNumber");
+
+                            t.Property("YearsOfExperience")
+                                .HasColumnName("Paramedic_YearsOfExperience");
+                        });
+
+                    b.HasDiscriminator().HasValue("Paramedic");
+                });
+
             modelBuilder.Entity("DUTClinicManagement.Models.Patient", b =>
                 {
                     b.HasBaseType("DUTClinicManagement.Models.UserBaseModel");
@@ -1112,6 +1380,14 @@ namespace DUTClinicManagement.Migrations
                     b.Property<int?>("BloodType")
                         .HasMaxLength(10)
                         .HasColumnType("int");
+
+                    b.Property<string>("EmergencyContactNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmergencyContactPerson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasDiscriminator().HasValue("Patient");
                 });
@@ -1198,7 +1474,7 @@ namespace DUTClinicManagement.Migrations
 
             modelBuilder.Entity("DUTClinicManagement.Models.Booking", b =>
                 {
-                    b.HasOne("DUTClinicManagement.Models.Nurse", "AssignedTo")
+                    b.HasOne("DUTClinicManagement.Models.UserBaseModel", "AssignedTo")
                         .WithMany()
                         .HasForeignKey("AssignedUserId");
 
@@ -1223,6 +1499,104 @@ namespace DUTClinicManagement.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("ModifiedBy");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.Conversation", b =>
+                {
+                    b.HasOne("DUTClinicManagement.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DUTClinicManagement.Models.UserBaseModel", "Responder")
+                        .WithMany()
+                        .HasForeignKey("ResponderId");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Responder");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.DeliveryRequest", b =>
+                {
+                    b.HasOne("DUTClinicManagement.Models.MedicationPescription", "MedicationPescription")
+                        .WithMany()
+                        .HasForeignKey("MedicationPescriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DUTClinicManagement.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DUTClinicManagement.Models.UserBaseModel", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("MedicationPescription");
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.EmergencyRequest", b =>
+                {
+                    b.HasOne("DUTClinicManagement.Models.UserBaseModel", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DUTClinicManagement.Models.Paramedic", "Paramedic")
+                        .WithMany()
+                        .HasForeignKey("ParamedicId");
+
+                    b.HasOne("DUTClinicManagement.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("Paramedic");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.Feedback", b =>
+                {
+                    b.HasOne("DUTClinicManagement.Models.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DUTClinicManagement.Models.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId");
+
+                    b.HasOne("DUTClinicManagement.Models.Nurse", "Nurse")
+                        .WithMany()
+                        .HasForeignKey("NurseId");
+
+                    b.HasOne("DUTClinicManagement.Models.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Nurse");
 
                     b.Navigation("Patient");
                 });
@@ -1362,15 +1736,23 @@ namespace DUTClinicManagement.Migrations
                     b.Navigation("ModifiedBy");
                 });
 
-            modelBuilder.Entity("DUTClinicManagement.Models.MedicationReminder", b =>
+            modelBuilder.Entity("DUTClinicManagement.Models.Message", b =>
                 {
-                    b.HasOne("DUTClinicManagement.Models.MedicationPescription", "MedicationPescription")
-                        .WithMany()
-                        .HasForeignKey("MedicationPescriptionId")
+                    b.HasOne("DUTClinicManagement.Models.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("MedicationPescription");
+                    b.HasOne("DUTClinicManagement.Models.UserBaseModel", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("DUTClinicManagement.Models.PatientMedicalHistory", b =>
@@ -1399,6 +1781,17 @@ namespace DUTClinicManagement.Migrations
                     b.Navigation("DeviceInfo");
 
                     b.Navigation("PaymentMadeBy");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.Reminder", b =>
+                {
+                    b.HasOne("DUTClinicManagement.Models.FollowUpAppointment", "FollowUpAppointment")
+                        .WithMany()
+                        .HasForeignKey("FollowUpAppointmentBookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FollowUpAppointment");
                 });
 
             modelBuilder.Entity("DUTClinicManagement.Models.Room", b =>
@@ -1507,17 +1900,22 @@ namespace DUTClinicManagement.Migrations
                         .WithMany()
                         .HasForeignKey("NurseId");
 
-                    b.HasOne("DUTClinicManagement.Models.Booking", "Booking")
+                    b.HasOne("DUTClinicManagement.Models.Booking", "OrignalBooking")
                         .WithMany()
                         .HasForeignKey("OriginalBookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Booking");
-
                     b.Navigation("Doctor");
 
                     b.Navigation("Nurse");
+
+                    b.Navigation("OrignalBooking");
+                });
+
+            modelBuilder.Entity("DUTClinicManagement.Models.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("DUTClinicManagement.Models.MedicalHistory", b =>

@@ -316,9 +316,6 @@ namespace DUTClinicManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RequestLocation")
-                        .HasColumnType("int");
-
                     b.Property<int?>("RequestStatus")
                         .HasColumnType("int");
 
@@ -819,9 +816,6 @@ namespace DUTClinicManagement.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReminderId"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("datetime2");

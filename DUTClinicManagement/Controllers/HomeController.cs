@@ -121,7 +121,8 @@ namespace DUTClinicManagement.Controllers
                     .Where(c => c.PatientId == user.Id && c.IsOpen)
                     .FirstOrDefaultAsync();
 
-                int messagesCount = 0; 
+                int messagesCount = 0;
+                int remindersCount = 0;
 
                 if (chat != null)
                 {
@@ -131,12 +132,24 @@ namespace DUTClinicManagement.Controllers
                         .CountAsync();
                 }
 
+                var followUpAppointmentIds = await _context.FollowUpAppointments
+                    .Where(f => f.PatientId == user.Id)
+                    .Select(f => f.BookingId)
+                    .ToListAsync();
+
+                if (followUpAppointmentIds != null && followUpAppointmentIds.Any())
+                {
+                    remindersCount = await _context.Reminders
+                        .Where(r => followUpAppointmentIds.Contains(r.FollowUpAppointmentBookingId))
+                        .CountAsync();
+                }
+
                 ViewBag.MessagesCount = messagesCount;
-
-
+                ViewBag.RemindersCount = remindersCount;
 
                 return View("PatientDashboard");
             }
+
         }
 
 

@@ -94,7 +94,6 @@
     <h2 class="dashboard-heading">Welcome, @ViewBag.LoggedInUser 👋</h2>
 
     <div class="row g-4">
-        <!-- Appointments -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">
@@ -109,37 +108,6 @@
             </div>
         </div>
 
-        <!-- X-Ray Requests -->
-        <div class="col-md-6 col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-icon-wrapper">
-                    <i class="fas fa-bone card-icon"></i>
-                </div>
-                <div class="card-title">X-Ray Requests</div>
-                <div class="card-text">X-Ray requests are listed here</div>
-                <div class="stat-number">@ViewBag.SportCoordinatorsCount</div>
-                <a asp-controller="Appointments" asp-action="MyXRayRequests" class="dashboard-link">
-                    View Requests <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <!-- Admissions -->
-        <div class="col-md-6 col-lg-6">
-            <div class="glass-card h-100">
-                <div class="card-icon-wrapper">
-                    <i class="fas fa-sign-in-alt card-icon"></i>
-                </div>
-                <div class="card-title">Admissions</div>
-                <div class="card-text">Your admissions are listed here</div>
-                <div class="stat-number">@ViewBag.AdmissionsCount</div>
-                <a asp-controller="Admissions" asp-action="MyPatientAdmissions" class="dashboard-link">
-                    View Admissions <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <!-- Medical History -->
         <div class="col-md-6 col-lg-6">
             <div class="glass-card h-100">
                 <div class="card-icon-wrapper">

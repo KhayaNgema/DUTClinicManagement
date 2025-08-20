@@ -53,7 +53,7 @@ namespace DUTClinicManagement.Controllers
                     .ThenInclude(mp => mp.PrescribedMedication)
                 .Include(i => i.Patient)
                 .Include(i => i.ModifiedBy)
-                .OrderBy(i => i.CreatedAt)
+                .OrderByDescending(i => i.CreatedAt)
                 .ToListAsync();
 
             return View(requests);
@@ -71,6 +71,7 @@ namespace DUTClinicManagement.Controllers
                 .Include(dr => dr.MedicationPescription)
                 .ThenInclude(dr => dr.PrescribedMedication)
                 .Include(dr => dr.Patient)
+                .OrderByDescending(dr => dr.CreatedAt)
                 .ToListAsync();
 
             return View(deliveryRequests);
@@ -177,12 +178,49 @@ namespace DUTClinicManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> PrepareDelivery(int deliveryRequestId)
         {
+
             var delivery = await _context.DeliveryRequests
                 .Where(d => d.DeliveryRequestId == deliveryRequestId)
+                .Include(d => d.MedicationPescription)
+                .ThenInclude(d => d.PrescribedMedication)
                 .FirstOrDefaultAsync();
 
-            delivery.Status = DeliveryRequestStatus.Prepared;
-            delivery.LastUpdatedAt = DateTime.Now;
+            if(delivery.Status == DeliveryRequestStatus.Prepared)
+            {
+                TempData["Message"] = $"You cannot prepare delivery requests more than once. That will affect our medication inventory. Take care.";
+
+                return RedirectToAction(nameof(DeliveryRequests));
+            }
+
+                foreach (var prescribed in delivery.MedicationPescription.PrescribedMedication)
+                {
+                    var inventory = await _context.MedicationInventory
+                        .Include(i => i.Medication)
+                        .FirstOrDefaultAsync(i => i.Medication.MedicationId == prescribed.MedicationId);
+
+                    if (inventory == null || inventory.Quantity <= 0)
+                        continue;
+
+                    inventory.Quantity--;
+
+                    if (inventory.Quantity <= 5)
+                        inventory.StockLevel = StockLevel.Critical;
+                    else if (inventory.Quantity <= 10)
+                        inventory.StockLevel = StockLevel.Low;
+                    else if (inventory.Quantity <= 25)
+                        inventory.StockLevel = StockLevel.Moderate;
+                    else
+                        inventory.StockLevel = StockLevel.High;
+
+                    if (inventory.Quantity == 0)
+                        inventory.Availability = MedicationAvailability.OutOfStock;
+
+                    _context.Update(inventory);
+                    await _context.SaveChangesAsync();
+                }
+
+                delivery.Status = DeliveryRequestStatus.Prepared;
+                delivery.LastUpdatedAt = DateTime.Now;
 
             _context.Update(delivery);
             await _context.SaveChangesAsync();

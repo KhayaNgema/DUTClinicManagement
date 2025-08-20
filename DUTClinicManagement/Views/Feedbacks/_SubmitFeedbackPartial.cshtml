@@ -2,7 +2,6 @@
 @{
     var doctors = ViewBag.Doctors as List<Doctor>;
     var nurses = ViewBag.Nurses as List<Nurse>;
-    Layout = null;
 
     string fullName = "";
     if (Model.Occupation == "Doctor")
@@ -22,12 +21,16 @@
         }
     }
 
-    string communicationComment = Model.Comments?
-        .Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries)
-        .FirstOrDefault(c => c.StartsWith("Communication:"))
-        ?.Replace("Communication: ", "") ?? "";
-}
+    string[] commentSections = Model.Comments?.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
 
+
+    string GetComment(string prefix) =>
+        commentSections.FirstOrDefault(c => c.StartsWith(prefix))?.Substring(prefix.Length).Trim() ?? "";
+
+    string communicationComment = GetComment("Communication:");
+    string professionalismComment = GetComment("Professionalism:");
+    string helpfulnessComment = GetComment("Helpfulness:");
+}
 <style>
     .comments-textarea {
         width: 100%;
@@ -39,23 +42,20 @@
         resize: vertical;
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
-
     .comments-textarea:focus {
         border-color: #198754;
         box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
         outline: none;
     }
-
     .rating-page {
         margin-top: 1.5rem;
     }
 </style>
-
 <div class="card shadow rounded-4 p-4 mb-5">
     <h3 class="text-center mb-4" style="color: #022D36;">Submit Feedback</h3>
-
     <form asp-action="SubmitFeedback" method="post" id="feedbackForm">
         @Html.AntiForgeryToken()
+
         <input type="hidden" asp-for="BookingId" />
         <input type="hidden" asp-for="Occupation" />
 
@@ -71,39 +71,35 @@
         <input type="hidden" id="commentsCombined" name="Comments" value="@Model.Comments" />
 
         <div id="ratingPages">
-
             <div class="rating-page" id="page-1">
                 <label for="comment1" class="form-label fw-semibold">How did @fullName communicate?</label>
                 <textarea id="comment1" class="comments-textarea" placeholder="Comment on how @fullName communicated...">@Html.Raw(communicationComment)</textarea>
-
                 <h5 class="mb-3">1. Communication</h5>
-                @Html.Partial("_RatingStars", Model?.CommunicationRating ?? Rating.NotRated, new ViewDataDictionary(ViewData) { { "PropertyName", "CommunicationRating" } })
-
+                @Html.Partial("_RatingStars", Model?.CommunicationRating ?? DUTClinicManagement.Models.Rating.NotRated, 
+                    new ViewDataDictionary(ViewData) { { "PropertyName", "CommunicationRating" } })
                 <button type="button" class="btn btn-primary float-end" onclick="saveCommentsAndShowPage(2)">Next</button>
             </div>
 
             <div class="rating-page d-none" id="page-2">
                 <label for="comment2" class="form-label fw-semibold">How was @fullName professionalism?</label>
-                <textarea id="comment2" class="comments-textarea" placeholder="Enter your comments here...">@Html.Raw(Model.Comments?.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(c => c.StartsWith("Professionalism:"))?.Replace("Professionalism: ", ""))</textarea>
-
+                <textarea id="comment2" class="comments-textarea" placeholder="Enter your comments here...">@Html.Raw(professionalismComment)</textarea>
                 <h5 class="mb-3">2. Professionalism</h5>
-                @Html.Partial("_RatingStars", Model?.ProfessionalismRating ?? Rating.NotRated, new ViewDataDictionary(ViewData) { { "PropertyName", "ProfessionalismRating" } })
-
+                @Html.Partial("_RatingStars", Model?.ProfessionalismRating ?? DUTClinicManagement.Models.Rating.NotRated, 
+                    new ViewDataDictionary(ViewData) { { "PropertyName", "ProfessionalismRating" } })
                 <button type="button" class="btn btn-secondary" onclick="saveCommentsAndShowPage(1)">Back</button>
                 <button type="button" class="btn btn-primary float-end" onclick="saveCommentsAndShowPage(3)">Next</button>
             </div>
 
             <div class="rating-page d-none" id="page-3">
                 <label for="comment3" class="form-label fw-semibold">How did @fullName help you?</label>
-                <textarea id="comment3" class="comments-textarea" placeholder="Enter your comments here...">@Html.Raw(Model.Comments?.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(c => c.StartsWith("Helpfulness:"))?.Replace("Helpfulness: ", ""))</textarea>
-
+                <textarea id="comment3" class="comments-textarea" placeholder="Enter your comments here...">@Html.Raw(helpfulnessComment)</textarea>
                 <h5 class="mb-3">3. Helpfulness</h5>
-                @Html.Partial("_RatingStars", Model?.HelpfulnessRating ?? Rating.NotRated, new ViewDataDictionary(ViewData) { { "PropertyName", "HelpfulnessRating" } })
-
+                @Html.Partial("_RatingStars", Model?.HelpfulnessRating ?? DUTClinicManagement.Models.Rating.NotRated, 
+                    new ViewDataDictionary(ViewData) { { "PropertyName", "HelpfulnessRating" } })
                 <button type="button" class="btn btn-secondary" onclick="saveCommentsAndShowPage(2)">Back</button>
                 <button type="submit" class="btn btn-success">Submit Feedback</button>
             </div>
-
         </div>
     </form>
 </div>
+

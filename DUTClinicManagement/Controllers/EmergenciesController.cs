@@ -3,6 +3,8 @@ using DUTClinicManagement.Interfaces;
 using DUTClinicManagement.Models;
 using DUTClinicManagement.Services;
 using DUTClinicManagement.ViewModels;
+using Hangfire;
+using HospitalManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,7 @@ namespace DUTClinicManagement.Controllers
         private readonly FileUploadService _fileUploadService;
         private readonly EmergencyPriorityService _priorityService;
         private readonly ParamedicAssignmentService _paramedicAssignmentService;
+        private readonly EmergencyContactService _emergencyContactService;
 
         public EmergenciesController(DUTClinicManagementDbContext context,
             UserManager<UserBaseModel> userManager,
@@ -28,7 +31,8 @@ namespace DUTClinicManagement.Controllers
             FileUploadService fileUploadService,
             EmergencyPriorityService priorityService,
             DeviceInfoService deviceInfoService,
-            ParamedicAssignmentService paramedicAssignmentService)
+            ParamedicAssignmentService paramedicAssignmentService,
+            EmergencyContactService emergencyContactService)
         {
             _context = context;
             _userManager = userManager;
@@ -36,8 +40,10 @@ namespace DUTClinicManagement.Controllers
             _emailService = emailService;
             _fileUploadService = fileUploadService;
             _deviceInfoService = deviceInfoService;
+            _emergencyContactService = emergencyContactService;
             _priorityService = priorityService;
             _paramedicAssignmentService = paramedicAssignmentService;
+            
         }
 
         [Authorize]
@@ -46,7 +52,12 @@ namespace DUTClinicManagement.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            return View();
+            var emergencyRequests = await _context.EmergencyRequests
+                .Where(er => er.PatientId == user.Id)
+                .Include(er => er.Paramedic)
+                .ToListAsync();
+
+            return View(emergencyRequests);
         }
 
         [Authorize(Roles ="Paramedic")]
@@ -97,11 +108,14 @@ namespace DUTClinicManagement.Controllers
                 _context.EmergencyRequests.Update(emergencyRequest);
                 await _context.SaveChangesAsync();
 
+                var encryptedRequestId = _encryptionService.Encrypt(requestId);
+
+                BackgroundJob.Enqueue(() => _emergencyContactService.NotifyEmergencyContactsAsync(encryptedRequestId));
+
                 return Json(new { success = true, message = "Drive started successfully." });
             }
             catch (DbUpdateException dbEx)
             {
-                // Return detailed inner exception message for debugging (remove or log in production)
                 var innerMessage = dbEx.InnerException != null ? dbEx.InnerException.Message : dbEx.Message;
                 return StatusCode(500, new { success = false, message = $"Database update error: {innerMessage}" });
             }
@@ -138,8 +152,6 @@ namespace DUTClinicManagement.Controllers
                     PatientId = viewModel.PatientId,
                     EmergencyDetails = viewModel.EmergencyDetails,
                     ModifiedById = viewModel.PatientId,
-                    ModifiedDateTime = DateTime.Now,
-                    RequestLocation = viewModel.RequestLocation,
                     RequestTime = DateTime.Now,
                     RequestStatus = RequestStatus.Pending,
                     Priority = priority,

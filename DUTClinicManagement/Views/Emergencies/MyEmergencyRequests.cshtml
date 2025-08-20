@@ -1,0 +1,185 @@
+﻿@model IEnumerable<DUTClinicManagement.Models.EmergencyRequest>
+@inject DUTClinicManagement.Interfaces.IEncryptionService encryptionService
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@{
+    ViewData["Title"] = "Emergency Requests";
+    Layout = "~/Views/Shared/_PagesLayout.cshtml";
+}
+
+@functions {
+    string GetEnumDisplayName<T>(T enumValue) where T : Enum
+    {
+        var member = typeof(T).GetMember(enumValue.ToString()).FirstOrDefault();
+        var dispAttr = member?.GetCustomAttribute<DisplayAttribute>();
+        return dispAttr?.GetName() ?? enumValue.ToString();
+    }
+}
+
+<head>
+    <style>
+        .btn-details {
+            font-size: 1rem;
+            padding: 6px 20px;
+            border-radius: 8px;
+            background-color: #010123;
+            color: white;
+            border: none;
+            margin-right: 6px;
+        }
+        .btn-details:hover {
+            background-color: #580a9e;
+        }
+        .btn-cancel {
+            font-size: 1rem;
+            padding: 6px 20px;
+            border-radius: 8px;
+            background-color: transparent;
+            border: 1px solid #ff4d4d;
+            color: #ff4d4d;
+        }
+        .btn-cancel:hover {
+            background-color: #ff4d4d;
+            color: white;
+        }
+        .filter-btn.active {
+            background-color: #022D36;
+            color: white;
+        }
+        .appointment-card {
+            border: 3px solid;
+            border-radius: 15px;
+            border-image-slice: 1;
+            border-image-source: linear-gradient(135deg, #6a0dad, #8B0000, #33001c);
+            background-color: #ffe6e6; /* Light red background for emergency */
+            padding: 1rem;
+            box-sizing: border-box;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .appointment-header {
+            font-weight: 600;
+            color: #8B0000;
+        }
+        .badge-status {
+            background-color: #8B0000;
+            color: white;
+            padding: 0.25em 0.5em;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            user-select: none;
+        }
+        .modal-header.modal-header-custom {
+            background-color: #010123;
+            color: white;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        .form-label {
+            font-weight: 600;
+        }
+        .modal-body dl dt {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<br />
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between px-3 py-3 mb-4"
+         style="background: linear-gradient(90deg, #010123 0%, #8B0000 50%, #FF0000 100%);
+                border-radius: 0.75rem;">
+        <div class="d-flex align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center back-link me-3">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </a>
+            <h2 class="mb-0 text-white">Emergency Requests</h2>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            No emergency requests found.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="emergenciesContainer">
+            @foreach (var request in Model)
+            {
+                var detailsModalId = $"detailsModal_{request.RequestId}";
+                <div class="col appointment-card-wrapper" data-status="@request.RequestStatus">
+                    <div class="card appointment-card rounded-4 p-3 h-100">
+                        <div class="card-body pb-5">
+                            <h5 class="appointment-header mb-3">
+                                ## @request.ReferenceNumber
+                            </h5>
+                            <p class="mb-1">
+                                <strong>Status:</strong> 
+                                <span class="badge badge-status">
+                                    @GetEnumDisplayName(request.RequestStatus ?? DUTClinicManagement.Models.RequestStatus.Pending)
+                                </span>
+                            </p>
+                        </div>
+                        <div class="card-actions d-flex justify-content-end">
+                            <button class="btn btn-details" data-bs-toggle="modal" data-bs-target="#@detailsModalId">Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Details Modal -->
+                    <div class="modal fade" id="@detailsModalId" tabindex="-1" aria-labelledby="@($"{detailsModalId}_Label")" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content rounded-4">
+                                <div class="modal-header modal-header-custom">
+                                    <h5 class="modal-title" id="@($"{detailsModalId}_Label")">Emergency Request Details — Ref #: @request.ReferenceNumber</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" style="font-size: 18px; padding: 25px;">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Reference Number:</dt>
+                                        <dd class="col-sm-8">@request.ReferenceNumber</dd>
+
+                                        <dt class="col-sm-4">Emergency Details:</dt>
+                                        <dd class="col-sm-8">@request.EmergencyDetails</dd>
+
+                                        <dt class="col-sm-4">Request Time:</dt>
+                                        <dd class="col-sm-8">@request.RequestTime.ToString("f")</dd>
+
+                                        <dt class="col-sm-4">Request Status:</dt>
+                                        <dd class="col-sm-8">@GetEnumDisplayName(request.RequestStatus ?? DUTClinicManagement.Models.RequestStatus.Pending)</dd>
+
+                                        <dt class="col-sm-4">Priority:</dt>
+                                        <dd class="col-sm-8">@GetEnumDisplayName(request.Priority ?? DUTClinicManagement.Models.Priority.Low)</dd>
+
+
+                                        <dt class="col-sm-4">Assigned Paramedic IDs:</dt>
+                                        <dd class="col-sm-8">
+                                            @if (request.AssignedParamedicIds != null && request.AssignedParamedicIds.Any())
+                                            {
+                                                <ul class="list-unstyled mb-0">
+                                                    @foreach (var id in request.AssignedParamedicIds)
+                                                    {
+                                                        <li>@id</li>
+                                                    }
+                                                </ul>
+                                            }
+                                            else
+                                            {
+                                                <span>None assigned</span>
+                                            }
+                                        </dd>
+                                    </dl>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                   
+                </div>
+            }
+        </div>
+    }
+</div>

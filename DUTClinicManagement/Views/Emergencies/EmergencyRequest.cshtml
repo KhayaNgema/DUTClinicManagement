@@ -34,15 +34,6 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="mb-3">
-                        <label asp-for="RequestLocation" class="form-label fw-semibold text-danger"></label>
-                        <select asp-for="RequestLocation" id="RequestLocation" class="form-select rounded-3 border-danger"
-                                asp-items="Html.GetEnumSelectList<RequestLocation>()">
-                            <option value="">-- Select Location --</option>
-                        </select>
-                        <span asp-validation-for="RequestLocation" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3">
                         <label asp-for="EmergencyDetails" class="form-label fw-semibold text-danger"></label>
                         <textarea asp-for="EmergencyDetails" class="form-control rounded-3 border-danger" style="min-height: 100px;"></textarea>
                         <span asp-validation-for="EmergencyDetails" class="text-danger small"></span>

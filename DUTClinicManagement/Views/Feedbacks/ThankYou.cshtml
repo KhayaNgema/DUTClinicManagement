@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Thank You";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .center-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 60vh;
+        text-align: center;
+        color: #28a745; /* Bootstrap success green */
+        font-family: Arial, sans-serif;
+        padding: 1rem;
+    }
+    .thank-you-icon {
+        font-size: 120px;
+        color: #28a745;
+        margin-bottom: 25px;
+        user-select: none;
+    }
+    .thank-you-text {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .thank-you-message {
+        font-size: 1.25rem;
+        color: #155724; 
+        max-width: 450px;
+        line-height: 1.5;
+    }
+</style>
+
+<div class="center-container" role="alert" aria-live="polite">
+    <div class="thank-you-icon" aria-hidden="true">
+        👍
+    </div>
+    <h1 class="thank-you-text">Thank You!</h1>
+    <p class="thank-you-message">
+        We really appreciate your feedback. It helps us improve and serve you better.
+    </p>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+               window.location.href = '/';
+            }, 4000);
+        });
+    </script>
+}

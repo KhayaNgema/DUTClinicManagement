@@ -39,6 +39,11 @@ namespace DUTClinicManagement.Controllers
             _feedbackService = feedbackService;
         }
 
+        public async Task<IActionResult> ThankYou()
+        {
+            return View();
+        }
+
         [HttpGet]
         public async Task<IActionResult> Feedback()
         {
@@ -132,13 +137,13 @@ namespace DUTClinicManagement.Controllers
                     {
                         PatientId = patient.Id,
                         BookingId = viewModel.BookingId,
-                        SubmittedOn = DateTime.UtcNow
+                        SubmittedOn = DateTime.Now
                     };
                     _context.Feedbacks.Add(feedback);
                 }
                 else
                 {
-                    feedback.SubmittedOn = DateTime.UtcNow;
+                    feedback.SubmittedOn = DateTime.Now;
                 }
 
                 feedback.CommunicationRating = viewModel.CommunicationRating;
@@ -164,8 +169,7 @@ namespace DUTClinicManagement.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Feedback submitted successfully!";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(nameof(ThankYou));
             }
             catch (Exception ex)
             {

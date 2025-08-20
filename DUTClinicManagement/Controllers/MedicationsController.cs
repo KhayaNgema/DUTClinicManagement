@@ -70,11 +70,17 @@ namespace HospitalManagement.Controllers
             var medications = await _context.MedicationPescription
                 .Include(mp => mp.PrescribedMedication)
                 .Include(mp => mp.Booking)
-                .ThenInclude(b => b.CreatedBy)
+                    .ThenInclude(b => b.CreatedBy)
                 .Include(mp => mp.Booking)
-                .ThenInclude(b => b.Patient)
-                .Where(mp => mp.Booking != null && mp.Booking.CreatedBy != null && mp.Booking.CreatedBy.Id == user.Id)
+                    .ThenInclude(b => b.Patient)
+                .Where(mp => mp.Booking != null
+                    && mp.Booking.CreatedBy != null
+                    && mp.Booking.CreatedBy.Id == user.Id
+                    && (mp.Status == MedicationPescriptionStatus.Pending
+                        || mp.Status == MedicationPescriptionStatus.Collecting)
+                )
                 .ToListAsync();
+
 
             var medicationViewModels = new List<MedicationCollectionViewModel>();
 

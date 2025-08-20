@@ -22,9 +22,6 @@ namespace DUTClinicManagement.ViewModels
 
         public List<SelectListItem> AvailableTimeSlots { get; set; }
 
-        [Required(ErrorMessage = "Please select the medical condition.")]
-        public CommonMedicalCondition MedicalCondition { get; set; }
-
         [Display(Name = "Additional notes")]
         public string? AdditionalNotes { get; set; }
 

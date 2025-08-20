@@ -31,8 +31,6 @@ namespace DUTClinicManagement.Models
 
         public RequestStatus? RequestStatus { get; set; }
 
-        public RequestLocation RequestLocation { get; set; }
-
         public Priority? Priority { get; set; }
 
         public string ReferenceNumber { get; set; }
